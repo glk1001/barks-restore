@@ -6,7 +6,8 @@ import numpy as np
 
 from remove_alias_artifacts import get_median_filter
 
-NUM_POSTERIZE_LEVELS = 5
+NUM_POSTERIZE_LEVELS = 6
+NUM_POSTERIZE_EXCEPTION_LEVELS = 3
 FIRST_LEVEL = int(255 / (NUM_POSTERIZE_LEVELS - 1))
 
 
@@ -30,11 +31,11 @@ def get_posterized_colors() -> Set[Tuple[int, int, int]]:
 
 def get_posterized_color_exceptions() -> Set[Tuple[int, int, int]]:
     all_colors = set()
-    for r in range(2):
+    for r in range(NUM_POSTERIZE_EXCEPTION_LEVELS+1):
         red = r * FIRST_LEVEL
-        for g in range(2):
+        for g in range(NUM_POSTERIZE_EXCEPTION_LEVELS+1):
             green = g * FIRST_LEVEL
-            for b in range(2):
+            for b in range(NUM_POSTERIZE_EXCEPTION_LEVELS+1):
                 blue = b  * FIRST_LEVEL
                 all_colors.add((red, green, blue))
 
@@ -144,10 +145,10 @@ def remove_colors(
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
 
-test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-1.jpg"
-out_file = "/tmp/test-image-1-out.jpg"
-# test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg"
-# out_file = "/tmp/test-image-2-out.jpg"
+# test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-1.jpg"
+# out_file = "/tmp/test-image-1-out.jpg"
+test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg"
+out_file = "/tmp/test-image-2-out.jpg"
 # test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-3.jpg"
 # out_file = "/tmp/test-image-3-out.jpg"
 # test_image = "/home/greg/Books/Carl Barks/Silent Night (Gemstone)/Gemstone-cp-3/01-upscayled_upscayl_2x_ultramix_balanced.jpg"
