@@ -6,45 +6,50 @@ import numpy as np
 
 from remove_alias_artifacts import get_median_filter
 
-COLOR_REMOVE_EXCEPTIONS = {
- (0, 0, 0),
-        (0, 0, 63),
-        (0, 63, 0),
-        (0, 63, 63),
-        (63, 0, 0),
-        (63, 63, 0),
-(63, 0, 63),
-}
+NUM_POSTERIZE_LEVELS = 5
+FIRST_LEVEL = int(255 / (NUM_POSTERIZE_LEVELS - 1))
 
 
 def posterize_image(image: cv.typing.MatLike):
-    n = 5
-
-    for i in range(n):
-        image[(image >= i * 255 / n) & (image < (i + 1) * 255 / n)] = i * 255 / (n - 1)
+    for i in range(NUM_POSTERIZE_LEVELS):
+        image[(image >= i * 255 / NUM_POSTERIZE_LEVELS) & (image < (i + 1) * 255 / NUM_POSTERIZE_LEVELS)] = i * 255 / (NUM_POSTERIZE_LEVELS - 1)
 
 
-def get_posterized_colors() -> Set[Tuple[int,int,int]]:
-    n = 5
-
+def get_posterized_colors() -> Set[Tuple[int, int, int]]:
     all_colors = set()
-    for r in range(n):
-        red = int(r * 255 / (n - 1))
-        for g in range(n):
-            green = int(g * 255 / (n - 1))
-            for b in range(n):
-                blue = int(b * 255 / (n - 1))
+    for r in range(NUM_POSTERIZE_LEVELS):
+        red = int(r * 255 / (NUM_POSTERIZE_LEVELS - 1))
+        for g in range(NUM_POSTERIZE_LEVELS):
+            green = int(g * 255 / (NUM_POSTERIZE_LEVELS - 1))
+            for b in range(NUM_POSTERIZE_LEVELS):
+                blue = int(b * 255 / (NUM_POSTERIZE_LEVELS - 1))
                 all_colors.add((red, green, blue))
 
     return all_colors
 
 
-def get_colors_to_remove() -> Set[Tuple[int,int,int]]:
+def get_posterized_color_exceptions() -> Set[Tuple[int, int, int]]:
+    all_colors = set()
+    for r in range(2):
+        red = r * FIRST_LEVEL
+        for g in range(2):
+            green = g * FIRST_LEVEL
+            for b in range(2):
+                blue = b  * FIRST_LEVEL
+                all_colors.add((red, green, blue))
+
+    return all_colors
+
+
+def get_colors_to_remove() -> Set[Tuple[int, int, int]]:
     posterized_colors = get_posterized_colors()
-    return posterized_colors - COLOR_REMOVE_EXCEPTIONS
+    return posterized_colors - get_posterized_color_exceptions()
 
 
-def get_color_counts(image: cv.typing.MatLike) -> Dict[Tuple[int,int,int], int]:
+COLORS_TO_REMOVE = get_colors_to_remove()
+
+
+def get_color_counts(image: cv.typing.MatLike) -> Dict[Tuple[int, int, int], int]:
     image_h, image_w = image.shape[0], image.shape[1]
 
     all_colors = dict()
@@ -117,31 +122,34 @@ def remove_colors(
                 else:
                     unposterized_removed_colors[color] = 1
 
-    color_counts_descending = OrderedDict(sorted(accepted_colors.items(),
-                                                 key=lambda kv: kv[1], reverse=True))
+    color_counts_descending = OrderedDict(
+        sorted(accepted_colors.items(), key=lambda kv: kv[1], reverse=True)
+    )
     with open("accepted-color-counts.txt", "w") as f:
         for color in color_counts_descending:
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
-    color_counts_descending = OrderedDict(sorted(posterized_removed_colors.items(),
-                                                 key=lambda kv: kv[1], reverse=True))
+    color_counts_descending = OrderedDict(
+        sorted(posterized_removed_colors.items(), key=lambda kv: kv[1], reverse=True)
+    )
     with open("posterized-removed-color-counts.txt", "w") as f:
         for color in color_counts_descending:
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
-    color_counts_descending = OrderedDict(sorted(unposterized_removed_colors.items(),
-                                                 key=lambda kv: kv[1], reverse=True))
+    color_counts_descending = OrderedDict(
+        sorted(unposterized_removed_colors.items(), key=lambda kv: kv[1], reverse=True)
+    )
     with open("unposterized-removed-color-counts.txt", "w") as f:
         for color in color_counts_descending:
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
 
-# test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-1.jpg"
-# out_file = "/tmp/test-image-1-out.jpg"
+test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-1.jpg"
+out_file = "/tmp/test-image-1-out.jpg"
 # test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg"
 # out_file = "/tmp/test-image-2-out.jpg"
-test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-3.jpg"
-out_file = "/tmp/test-image-3-out.jpg"
+# test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-3.jpg"
+# out_file = "/tmp/test-image-3-out.jpg"
 # test_image = "/home/greg/Books/Carl Barks/Silent Night (Gemstone)/Gemstone-cp-3/01-upscayled_upscayl_2x_ultramix_balanced.jpg"
 # out_file ="/tmp/junk-out-image-big.jpg"
 
@@ -157,24 +165,25 @@ gray_image = cv.cvtColor(blurred_image, cv.COLOR_BGR2GRAY)
 # for color in posterized_colors:
 #         print(f"{color}")
 
-colors_to_remove = get_colors_to_remove()
 
 out_image = blurred_image
 posterize_image(out_image)
 cv.imwrite("/tmp/posterized-image.jpg", out_image)
 
 color_counts = get_color_counts(out_image)
-color_counts_descending = OrderedDict(sorted(color_counts.items(),
-                                             key=lambda kv: kv[1], reverse=True))
+color_counts_descending = OrderedDict(
+    sorted(color_counts.items(), key=lambda kv: kv[1], reverse=True)
+)
 with open("posterized-color-counts.txt", "w") as f:
     for color in color_counts_descending:
         f.write(f"{color}: {color_counts_descending[color]}\n")
 
-remove_colors(colors_to_remove, gray_image, out_image)
+remove_colors(COLORS_TO_REMOVE, gray_image, out_image)
 
 color_counts = get_color_counts(out_image)
-color_counts_descending = OrderedDict(sorted(color_counts.items(),
-                                             key=lambda kv: kv[1], reverse=True))
+color_counts_descending = OrderedDict(
+    sorted(color_counts.items(), key=lambda kv: kv[1], reverse=True)
+)
 with open("remaining-color-counts.txt", "w") as f:
     for color in color_counts_descending:
         f.write(f"{color}: {color_counts_descending[color]}\n")
