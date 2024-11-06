@@ -6,119 +6,15 @@ import numpy as np
 
 from remove_alias_artifacts import get_median_filter
 
-# FANTAGRAPHICS_COLORS = {
-#     (248, 242, 226),  # cream in all
-#     (152, 100, 87),  # WDCS 87, page 4, panel 1
-#     (163, 99, 71),  # WDCS 87, page 4, panel 1
-#     (165, 96, 80),  # WDCS 87, page 4, panel 1
-#     (173, 108, 80),  # WDCS 87, page 4, panel 1
-#     (176, 112, 87),  # WDCS 87, page 4, panel 1
-#     (178, 161, 135),  # WDCS 87, page 4, panel 1
-#     (178, 217, 224),  # WDCS 87, page 4, panel 1
-#     (181, 97, 71),  # WDCS 87, page 4, panel 1
-#     (183, 218, 222),  # WDCS 104, page 1, panel 8
-#     (184, 160, 136),  # WDCS 87, page 4, panel 1
-#     (186, 111, 80),  # WDCS 87, page 4, panel 1
-#     (194, 177, 183),  # WDCS 87, page 4, panel 1
-#     (203, 115, 79),  # WDCS 87, page 4, panel 1
-# }
-COLOR_RANGE_MIN = -4
-COLOR_RANGE_MAX = -COLOR_RANGE_MIN
-COLOR_RANGE = range(COLOR_RANGE_MIN, COLOR_RANGE_MAX + 1)
-FANTAGRAPHICS_COLORS = {
-        (255, 191, 0),  # WDCS 104, page 1, panel 8
-        (255, 191, 63),  # WDCS 104, page 1, panel 8
-        (0, 191, 255),  # WDCS 104, page 1, panel 8
-        (0, 191, 191),  # WDCS 104, page 1, panel 8
-        (0, 127, 191),  # WDCS 104, page 1, panel 8
-        (191, 0, 0),  # WDCS 104, page 1, panel 8
-        (255, 0, 0),  # WDCS 104, page 1, panel 8
-        (255, 63, 63),  # WDCS 104, page 1, panel 8
-        (255, 0, 63),  # WDCS 104, page 1, panel 8
-        (255, 63, 0),  # WDCS 104, page 1, panel 8
-        (191, 255, 255),    # WDCS 87, page 4, panel 1
-        (191, 191, 63),    # WDCS 87, page 4, panel 1
-        (191, 127, 63),    # WDCS 87, page 4, panel 1
-        (191, 0, 63),    # WDCS 87, page 4, panel 1
-        (0, 62, 13),  # WDCS 87, page 4, panel 1
-        (0, 191, 62),  # WDCS 87, page 4, panel 1
-        (188, 187, 66),  # WDCS 87, page 4, panel 1
-        (189, 128, 63),  # WDCS 87, page 4, panel 1
-        (191, 191, 127),  # WDCS 87, page 4, panel 1
-        (191, 191, 129),  # WDCS 87, page 4, panel 1
-        (191, 191, 191),  # WDCS 87, page 4, panel 1
-        (191, 192, 124),  # WDCS 87, page 4, panel 1
-        (192, 255, 63),  # WDCS 87, page 4, panel 1
-        (195, 62, 63),  # WDCS 87, page 4, panel 1
-        (255, 127, 0),  # WDCS 87, page 4, panel 1
-        (255, 191, 127),  # WDCS 87, page 4, panel 1
-        (255, 190, 0),  # WDCS 87, page 4, panel 1
-# remnants
-# (63, 63, 0),
-# (63, 0, 0),
-# (0, 63, 0),
-#(0, 63, 63),
-#(0, 0, 63),
-#(63, 0, 63),
-
-        (124, 62, 65),  # WDCS 87, page 4, panel 1
-        (83, 112, 82),  # WDCS 87, page 4, panel 1
-        (122, 130, 71),  # WDCS 87, page 4, panel 1
-        (127, 127, 63),
-        (127, 63, 63),
-(127, 63, 0),
-(191, 255, 127),
-(191, 63, 63),
-(191, 127, 127),
-(127, 191, 191),
-(255, 127, 63),
-(255, 255, 191),
-(63, 127, 127),
-(63, 127, 63),
-(127, 127, 0),
-(191, 127, 0),
-(255, 191, 191),
-(127, 191, 63),
-(255, 255, 127),
-(191, 191, 255),
-(127, 191, 127),
-(191, 255, 191),
-(0, 127, 0),
-(63, 63, 127),
-(63, 127, 0),
-(127, 127, 191),
-(191, 127, 191),
-(127, 63, 127),
-(127, 0, 0),
-(63, 191, 127),
-(191, 63, 0),
-(63, 191, 63),
-(127, 255, 191),
-(255, 255, 63),
-(0, 191, 127),
-(255, 191, 255),
-(191, 191, 0),
-(255, 127, 127),
-(127, 191, 0),
-(0, 127, 127),
+COLOR_REMOVE_EXCEPTIONS = {
+ (0, 0, 0),
+        (0, 0, 63),
+        (0, 63, 0),
+        (0, 63, 63),
+        (63, 0, 0),
+        (63, 63, 0),
+(63, 0, 63),
 }
-
-def get_fuzzied_fantagraphics_colors() -> Set[Tuple[int, int, int]]:
-    return FANTAGRAPHICS_COLORS
-
-    fuzzied_set = set()
-
-    for color in FANTAGRAPHICS_COLORS:
-        for r in COLOR_RANGE:
-            red = min(255, max(0, color[0] + r))
-            for g in COLOR_RANGE:
-                green = min(255, max(0, color[1] + g))
-                for b in COLOR_RANGE:
-                    blue = min(255, max(0, color[2] + b))
-                    fuzz_color = (red, green, blue)
-                    fuzzied_set.add(fuzz_color)
-
-    return fuzzied_set
 
 
 def posterize_image(image: cv.typing.MatLike):
@@ -128,19 +24,24 @@ def posterize_image(image: cv.typing.MatLike):
         image[(image >= i * 255 / n) & (image < (i + 1) * 255 / n)] = i * 255 / (n - 1)
 
 
-def get_posterized_colors() -> List[Tuple[int,int,int]]:
+def get_posterized_colors() -> Set[Tuple[int,int,int]]:
     n = 5
 
-    all_colors = []
+    all_colors = set()
     for r in range(n):
         red = int(r * 255 / (n - 1))
         for g in range(n):
             green = int(g * 255 / (n - 1))
             for b in range(n):
                 blue = int(b * 255 / (n - 1))
-                all_colors.append((red, green, blue))
+                all_colors.add((red, green, blue))
 
     return all_colors
+
+
+def get_colors_to_remove() -> Set[Tuple[int,int,int]]:
+    posterized_colors = get_posterized_colors()
+    return posterized_colors - COLOR_REMOVE_EXCEPTIONS
 
 
 def get_color_counts(image: cv.typing.MatLike) -> Dict[Tuple[int,int,int], int]:
@@ -252,11 +153,11 @@ print(f"width: {width}, height: {height}, channels: {num_channels}")
 blurred_image = get_median_filter(src_image)
 gray_image = cv.cvtColor(blurred_image, cv.COLOR_BGR2GRAY)
 
-posterized_colors = get_posterized_colors()
-for color in posterized_colors:
-        print(f"{color}")
+# posterized_colors = get_posterized_colors()
+# for color in posterized_colors:
+#         print(f"{color}")
 
-colors = get_fuzzied_fantagraphics_colors()
+colors_to_remove = get_colors_to_remove()
 
 out_image = blurred_image
 posterize_image(out_image)
@@ -269,7 +170,7 @@ with open("posterized-color-counts.txt", "w") as f:
     for color in color_counts_descending:
         f.write(f"{color}: {color_counts_descending[color]}\n")
 
-remove_colors(colors, gray_image, out_image)
+remove_colors(colors_to_remove, gray_image, out_image)
 
 color_counts = get_color_counts(out_image)
 color_counts_descending = OrderedDict(sorted(color_counts.items(),
