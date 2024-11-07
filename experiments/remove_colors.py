@@ -66,7 +66,7 @@ def write_color_counts(filename: str, image: cv.typing.MatLike):
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
 
-def remove_colors_from_image(out_dir: str, out_basename: str, image: cv.typing.MatLike):
+def remove_colors_from_image(out_dir: str, out_basename: str, image: cv.typing.MatLike) -> str:
     out_image = get_median_filter(image)
     median_filter_image_file = os.path.join(
         out_dir, out_basename + "-median-filtered.jpg"
@@ -93,3 +93,5 @@ def remove_colors_from_image(out_dir: str, out_basename: str, image: cv.typing.M
 
     out_image_file = os.path.join(out_dir, out_basename + "-color-removed.jpg")
     cv.imwrite(out_image_file, out_image)
+
+    return out_image_file
