@@ -1,6 +1,5 @@
 import os
 from collections import OrderedDict
-from pathlib import Path
 from typing import Tuple, Dict
 
 import cv2 as cv
@@ -24,7 +23,7 @@ def posterize_image(image: cv.typing.MatLike):
 
 
 def remove_colors(image: cv.typing.MatLike):
-    remove_colors = np.any(
+    colors_to_remove = np.any(
         [
             image[:, :, 0] > FIRST_LEVEL,
             image[:, :, 1] > FIRST_LEVEL,
@@ -32,7 +31,7 @@ def remove_colors(image: cv.typing.MatLike):
         ],
         axis=0,
     )
-    image[remove_colors] = (255, 255, 255)
+    image[colors_to_remove] = (255, 255, 255)
 
 
 def get_color_counts(image: cv.typing.MatLike) -> Dict[Tuple[int, int, int], int]:
@@ -67,7 +66,7 @@ def write_color_counts(filename: str, image: cv.typing.MatLike):
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
 
-def process_image(out_basename: str, image: cv.typing.MatLike):
+def remove_colors_from_image(out_dir: str, out_basename: str, image: cv.typing.MatLike):
     out_image = get_median_filter(image)
     median_filter_image_file = os.path.join(
         out_dir, out_basename + "-median-filtered.jpg"
@@ -94,30 +93,3 @@ def process_image(out_basename: str, image: cv.typing.MatLike):
 
     out_image_file = os.path.join(out_dir, out_basename + "-color-removed.jpg")
     cv.imwrite(out_image_file, out_image)
-
-
-# posterized_colors = get_posterized_colors()
-# for color in posterized_colors:
-#         print(f"{color}")
-
-
-out_dir = "/home/greg/Prj/workdir/restore-tests"
-os.makedirs(out_dir, exist_ok=True)
-
-test_image_files = [
-    Path("/home/greg/Prj/github/restore-barks/experiments/test-image-1.jpg"),
-    Path("/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg"),
-    Path("/home/greg/Prj/github/restore-barks/experiments/test-image-3.jpg"),
-]
-# test_image_file = Path("/home/greg/Prj/github/restore-barks/experiments/test-image-3-noise-reduction.jpg")
-# test_image_file = Path("/home/greg/Books/Carl Barks/Silent Night (Gemstone)/Gemstone-cp-3/01-upscayled_upscayl_2x_ultramix_balanced.jpg")
-
-for image_file in test_image_files:
-    print(f'Processing "{image_file}"...')
-
-    src_image = cv.imread(str(image_file))
-
-    height, width, num_channels = src_image.shape
-    print(f"width: {width}, height: {height}, channels: {num_channels}")
-
-    process_image(image_file.stem, src_image)
