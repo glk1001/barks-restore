@@ -1,13 +1,15 @@
+import os
 from typing import Set, Tuple, Dict, List
 from collections import OrderedDict
+from pathlib import Path
 
 import cv2 as cv
 import numpy as np
 
 from remove_alias_artifacts import get_median_filter
 
-NUM_POSTERIZE_LEVELS = 6
-NUM_POSTERIZE_EXCEPTION_LEVELS = 3
+NUM_POSTERIZE_LEVELS = 5
+NUM_POSTERIZE_EXCEPTION_LEVELS = 2
 FIRST_LEVEL = int(255 / (NUM_POSTERIZE_LEVELS - 1))
 
 
@@ -116,45 +118,50 @@ def remove_colors(
                     accepted_colors[color] = 1
                 print(f"({i},{j}): {red},{green},{blue},{grey} - keep")
             else:
-                image[i][j] = (255, 255, 255)
-                print(f"({i},{j}): {red},{green},{blue},{grey} - remove unposterized")
-                if color in unposterized_removed_colors:
-                    unposterized_removed_colors[color] += 1
-                else:
-                    unposterized_removed_colors[color] = 1
+                pass
+                # image[i][j] = (255, 255, 255)
+                # print(f"({i},{j}): {red},{green},{blue},{grey} - remove unposterized")
+                # if color in unposterized_removed_colors:
+                #     unposterized_removed_colors[color] += 1
+                # else:
+                #     unposterized_removed_colors[color] = 1
 
     color_counts_descending = OrderedDict(
         sorted(accepted_colors.items(), key=lambda kv: kv[1], reverse=True)
     )
-    with open("accepted-color-counts.txt", "w") as f:
+    with open(os.path.join(out_dir, out_filename + "-accepted-color-counts.txt"), "w") as f:
         for color in color_counts_descending:
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
     color_counts_descending = OrderedDict(
         sorted(posterized_removed_colors.items(), key=lambda kv: kv[1], reverse=True)
     )
-    with open("posterized-removed-color-counts.txt", "w") as f:
+    with open(os.path.join(out_dir, out_filename + "-posterized-removed-color-counts.txt"), "w") as f:
         for color in color_counts_descending:
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
     color_counts_descending = OrderedDict(
         sorted(unposterized_removed_colors.items(), key=lambda kv: kv[1], reverse=True)
     )
-    with open("unposterized-removed-color-counts.txt", "w") as f:
+    with open(os.path.join(out_dir, out_filename + "-unposterized-removed-color-counts.txt"), "w") as f:
         for color in color_counts_descending:
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
 
-# test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-1.jpg"
-# out_file = "/tmp/test-image-1-out.jpg"
-test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg"
-out_file = "/tmp/test-image-2-out.jpg"
-# test_image = "/home/greg/Prj/github/restore-barks/experiments/test-image-3.jpg"
-# out_file = "/tmp/test-image-3-out.jpg"
-# test_image = "/home/greg/Books/Carl Barks/Silent Night (Gemstone)/Gemstone-cp-3/01-upscayled_upscayl_2x_ultramix_balanced.jpg"
-# out_file ="/tmp/junk-out-image-big.jpg"
+out_dir = "/home/greg/Prj/workdir/restore-tests"
+os.makedirs(out_dir, exist_ok=True)
 
-src_image = cv.imread(test_image)
+#test_image_file = Path("/home/greg/Prj/github/restore-barks/experiments/test-image-1.jpg")
+test_image_file = Path("/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg")
+#test_image_file = Path("/home/greg/Prj/github/restore-barks/experiments/test-image-3.jpg")
+#test_image_file = Path("/home/greg/Prj/github/restore-barks/experiments/test-image-3-noise-reduction.jpg")
+# test_image_file = Path("/home/greg/Books/Carl Barks/Silent Night (Gemstone)/Gemstone-cp-3/01-upscayled_upscayl_2x_ultramix_balanced.jpg")
+
+out_filename = test_image_file.stem
+
+out_image_file = os.path.join(out_dir, out_filename + "-color-removed.jpg")
+
+src_image = cv.imread(str(test_image_file))
 # src_image = cv.copyMakeBorder(src_image, 10, 10, 10, 10, cv.BORDER_CONSTANT, None, value = (255,255,255))
 height, width, num_channels = src_image.shape
 print(f"width: {width}, height: {height}, channels: {num_channels}")
@@ -169,13 +176,13 @@ gray_image = cv.cvtColor(blurred_image, cv.COLOR_BGR2GRAY)
 
 out_image = blurred_image
 posterize_image(out_image)
-cv.imwrite("/tmp/posterized-image.jpg", out_image)
+cv.imwrite(os.path.join(out_dir, out_filename + "-posterized.jpg"), out_image)
 
 color_counts = get_color_counts(out_image)
 color_counts_descending = OrderedDict(
     sorted(color_counts.items(), key=lambda kv: kv[1], reverse=True)
 )
-with open("posterized-color-counts.txt", "w") as f:
+with open(os.path.join(out_dir, out_filename + "-posterized-color-counts.txt"), "w") as f:
     for color in color_counts_descending:
         f.write(f"{color}: {color_counts_descending[color]}\n")
 
@@ -185,8 +192,8 @@ color_counts = get_color_counts(out_image)
 color_counts_descending = OrderedDict(
     sorted(color_counts.items(), key=lambda kv: kv[1], reverse=True)
 )
-with open("remaining-color-counts.txt", "w") as f:
+with open(os.path.join(out_dir, out_filename + "-remaining-color-counts.txt"), "w") as f:
     for color in color_counts_descending:
         f.write(f"{color}: {color_counts_descending[color]}\n")
 
-cv.imwrite(out_file, out_image)
+cv.imwrite(out_image_file, out_image)

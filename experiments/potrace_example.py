@@ -1,13 +1,14 @@
+import cairosvg
 import sys
 from PIL import Image
 from potrace import Bitmap, POTRACE_TURNPOLICY_MINORITY  # `potracer` library
 
 
-def file_to_svg(filename: str):
+def file_to_svg(in_file: str, out_file: str):
     try:
-        image = Image.open(filename)
+        image = Image.open(in_file)
     except IOError:
-        print("Image (%s) could not be loaded." % filename)
+        print("Image (%s) could not be loaded." % in_file)
         return
     bm = Bitmap(image, blacklevel=0.5)
     # bm.invert()
@@ -18,7 +19,7 @@ def file_to_svg(filename: str):
         opticurve=False,
         opttolerance=0.2,
     )
-    with open(f"{filename}.svg", "w") as fp:
+    with open(out_file, "w") as fp:
         fp.write(
             f'''<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{image.width}" height="{image.height}" viewBox="0 0 {image.width} {image.height}">''')
         parts = []
@@ -41,4 +42,12 @@ def file_to_svg(filename: str):
 
 
 if __name__ == '__main__':
-    file_to_svg(sys.argv[1])
+    input_image_file = sys.argv[1]
+    output_svg_file = f"{input_image_file}.svg"
+    file_to_svg(input_image_file, output_svg_file)
+
+    png_image = cairosvg.svg2png(url=output_svg_file)
+
+    output_png_file = f"{output_svg_file}.png"
+    with open(output_png_file, "wb") as f:
+        f.write(png_image)
