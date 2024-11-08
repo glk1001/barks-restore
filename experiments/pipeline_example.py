@@ -23,9 +23,11 @@ scale = 2
 for image_file in test_image_files:
     print(f'Processing "{image_file}"...')
 
-    upscale_file = os.path.join(out_dir, f"{image_file.stem}-upscayl-x{scale}.jpg")
+    upscale_image_stem = f"{image_file.stem}-upscayl-x{scale}"
+
+    upscale_file = os.path.join(out_dir, f"{upscale_image_stem}.jpg")
     print(f'\nUpscaling to "{upscale_file}"...')
-    upscale_image_file(str(image_file), upscale_file)
+    upscale_image_file(str(image_file), upscale_file, scale)
 
     upscale_image = cv.imread(str(upscale_file))
     print(f'\nRemoving colors from upscaled file "{upscale_file}"...')
@@ -33,10 +35,10 @@ for image_file in test_image_files:
     # print(f"width: {width}, height: {height}, channels: {num_channels}")
 
     removed_colors_file = remove_colors_from_image(
-        out_dir, image_file.stem, upscale_image
+        out_dir, upscale_image_stem, upscale_image
     )
 
-    svg_file = os.path.join(out_dir, f"{image_file.stem}.svg")
+    svg_file = os.path.join(out_dir, f"{upscale_image_stem}.svg")
     print(f'\nGenerating svg file "{svg_file}"...')
     image_file_to_svg(removed_colors_file, svg_file)
 

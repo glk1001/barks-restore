@@ -91,6 +91,11 @@ def remove_colors_from_image(out_dir: str, out_basename: str, image: cv.typing.M
         )
         write_color_counts(remaining_color_counts_file, out_image)
 
+CONVERT TO BINARY HERE??
+    kernel = np.ones((3, 3), np.uint8)
+    out_image = cv.morphologyEx(out_image, cv.MORPH_OPEN, kernel)
+    #out_image = cv.fastNlMeansDenoising(out_image, None)
+
     out_image_file = os.path.join(out_dir, out_basename + "-color-removed.jpg")
     cv.imwrite(out_image_file, out_image)
 

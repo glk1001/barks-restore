@@ -12,9 +12,9 @@ def image_file_to_svg(in_file: str, out_file: str):
     plist = bm.trace(
         turdsize=2,
         turnpolicy=POTRACE_TURNPOLICY_MINORITY,
-        alphamax=1,
-        opticurve=False,
-        opttolerance=0.2,
+        alphamax=1.2,
+        opticurve=True,
+        opttolerance=1.0,
     )
 
     with open(out_file, "w") as fp:
