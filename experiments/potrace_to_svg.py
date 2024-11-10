@@ -1,10 +1,15 @@
 import cairosvg
+import gmic
 from PIL import Image
 from potrace import Bitmap, POTRACE_TURNPOLICY_MINORITY
 
 
 def image_file_to_svg(in_file: str, out_file: str):
-    image = Image.open(in_file)
+    smoothed_file = out_file + "-smoothed.png"
+    # TODO: Get the right smoothing params here
+    gmic.run(f'input "{in_file}" smooth 10,0,1,1,2 output "{smoothed_file}"')
+
+    image = Image.open(smoothed_file)
 
     bm = Bitmap(image, blacklevel=0.5)
     # bm.invert()

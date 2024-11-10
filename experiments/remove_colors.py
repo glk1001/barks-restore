@@ -31,7 +31,7 @@ def remove_colors(image: cv.typing.MatLike):
         ],
         axis=0,
     )
-    image[colors_to_remove] = (255, 255, 255)
+    image[colors_to_remove] = (255, 255, 255, 0)
 
 
 def get_color_counts(image: cv.typing.MatLike) -> Dict[Tuple[int, int, int], int]:
@@ -66,7 +66,9 @@ def write_color_counts(filename: str, image: cv.typing.MatLike):
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
 
-def remove_colors_from_image(out_dir: str, out_basename: str, image: cv.typing.MatLike) -> str:
+def remove_colors_from_image(
+    out_dir: str, out_basename: str, image: cv.typing.MatLike
+) -> str:
     out_image = get_median_filter(image)
     median_filter_image_file = os.path.join(
         out_dir, out_basename + "-median-filtered.jpg"
@@ -83,6 +85,7 @@ def remove_colors_from_image(out_dir: str, out_basename: str, image: cv.typing.M
         )
         write_color_counts(posterized_counts_file, out_image)
 
+    out_image = cv.cvtColor(out_image, cv.COLOR_RGB2RGBA)
     remove_colors(out_image)
 
     if DEBUG_WRITE_COLOR_COUNTS:
@@ -91,12 +94,7 @@ def remove_colors_from_image(out_dir: str, out_basename: str, image: cv.typing.M
         )
         write_color_counts(remaining_color_counts_file, out_image)
 
-CONVERT TO BINARY HERE??
-    kernel = np.ones((3, 3), np.uint8)
-    out_image = cv.morphologyEx(out_image, cv.MORPH_OPEN, kernel)
-    #out_image = cv.fastNlMeansDenoising(out_image, None)
-
-    out_image_file = os.path.join(out_dir, out_basename + "-color-removed.jpg")
+    out_image_file = os.path.join(out_dir, out_basename + "-color-removed.png")
     cv.imwrite(out_image_file, out_image)
 
     return out_image_file

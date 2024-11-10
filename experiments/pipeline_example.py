@@ -44,3 +44,8 @@ for image_file in test_image_files:
 
     png_file = os.path.join(out_dir, f"{svg_file}.png")
     svg_file_to_png(svg_file, png_file)
+
+    # Use removed colors black as mask to erase all black
+    # Use svg as mask to inpaint up to
+    # Check if gmic flat colors is available
+    # Convert back to original size - save a color image and a b/w image
