@@ -1,20 +1,13 @@
 import cairosvg
-import gmic
 from PIL import Image
 from potrace import Bitmap, POTRACE_TURNPOLICY_MINORITY
 
 
 def image_file_to_svg(in_file: str, out_file: str):
-    smoothed_file = out_file + "-smoothed.png"
-    # TODO: Get the right smoothing params here
-    gmic.run(f'input "{in_file}" smooth 10,0,1,1,2 output "{smoothed_file}"')
+    image = Image.open(in_file)
+    bitmap = Bitmap(image, blacklevel=0.5)
 
-    image = Image.open(smoothed_file)
-
-    bm = Bitmap(image, blacklevel=0.5)
-    # bm.invert()
-
-    plist = bm.trace(
+    plist = bitmap.trace(
         turdsize=2,
         turnpolicy=POTRACE_TURNPOLICY_MINORITY,
         alphamax=1.2,
@@ -55,7 +48,7 @@ def image_file_to_svg(in_file: str, out_file: str):
 
 
 def svg_file_to_png(svg_file: str, png_file: str):
-    png_image = cairosvg.svg2png(url=svg_file)
+    png_image = cairosvg.svg2png(url=svg_file, scale=1)
 
     with open(png_file, "wb") as f:
         f.write(png_image)
