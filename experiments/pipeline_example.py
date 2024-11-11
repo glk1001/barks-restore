@@ -3,6 +3,7 @@ from pathlib import Path
 
 import cv2 as cv
 
+from inpaint import inpaint_image_file
 from potrace_to_svg import image_file_to_svg, svg_file_to_png
 from remove_colors import remove_colors_from_image
 from upscale_image import upscale_image_file
@@ -49,3 +50,5 @@ for image_file in test_image_files:
     # Use svg as mask to inpaint up to
     # Check if gmic flat colors is available
     # Convert back to original size - save a color image and a b/w image
+    inpainted_file = os.path.join(out_dir, f"{upscale_image_stem}-inpainted.png")
+    inpaint_image_file(upscale_file, removed_colors_file, inpainted_file)
