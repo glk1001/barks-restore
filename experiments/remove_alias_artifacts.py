@@ -1,5 +1,4 @@
 import os
-import time
 
 import cv2 as cv
 import numpy as np
@@ -92,11 +91,6 @@ def _get_median(num_nbrs: int, nbrs0, nbrs1, nbrs2):
 
 
 def get_median_filter(input_image: cv.typing.MatLike) -> cv.typing.MatLike:
-    # color_removed_image = cv.cvtColor(input_image, cv.COLOR_BGR2HSV)
-    # black_ink_mask = cv.inRange(
-    #     color_removed_image, LOWER_HSV_BLACK_CUT, HIGHER_HSV_BLACK_CUT
-    # )
-
     black_ink_mask = _get_black_ink_mask(input_image)
     if DEBUG:
         cv.imwrite(
@@ -127,70 +121,6 @@ def get_median_filter(input_image: cv.typing.MatLike) -> cv.typing.MatLike:
     return filtered_image
 
 
-def get_thickened_black_lines(
-    input_image: cv.typing.MatLike, thicken_alpha: float
-) -> cv.typing.MatLike:
-    black_ink_mask = _get_black_ink_mask(input_image)
-    if DEBUG:
-        cv.imwrite(
-            os.path.join(DEBUG_OUTPUT_DIR, "black-ink-mask.jpg"),
-            black_ink_mask,
-        )
-
-    # black_ink_mask_blurred_image = black_ink_mask
-    # black_ink_mask_blurred_image = cv.GaussianBlur(black_ink_mask, (3, 3), 0)
-    # black_ink_mask_blurred_image = cv.blur(black_ink_mask, (2, 2), anchor=(-1,-1))
-    # black_ink_mask_blurred_image = cv.bilateralFilter(black_ink_mask, 10, 80, 90)
-    kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (2, 2))
-    black_ink_mask_blurred_image = cv.dilate(black_ink_mask, kernel, iterations=1)
-
-    contours, hierarchy = cv.findContours(
-        black_ink_mask_blurred_image, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE
-    )
-    black_ink_contours_mask = np.zeros_like(black_ink_mask_blurred_image)
-    cv.drawContours(black_ink_contours_mask, contours, -1, (255, 255, 255), cv.FILLED)
-    for c in contours:
-        area = cv.contourArea(c)
-        if area < 10:
-            cv.drawContours(black_ink_contours_mask, [c], 0, (0, 0, 0), -1)
-    # kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
-    # black_ink_contours_mask = cv.erode(black_ink_contours_mask, kernel, iterations=1)
-    if DEBUG:
-        cv.imwrite(
-            os.path.join(DEBUG_OUTPUT_DIR, "black-ink-contours-mask.jpg"),
-            black_ink_contours_mask,
-        )
-
-    if DEBUG:
-        black_ink_contours_outlines = np.zeros_like(black_ink_mask_blurred_image)
-        cv.drawContours(black_ink_contours_outlines, contours, -1, (255, 255, 255), 1)
-        cv.imwrite(
-            os.path.join(DEBUG_OUTPUT_DIR, "black-ink-contours-outlines.jpg"),
-            black_ink_contours_outlines,
-        )
-
-    filtered_image = input_image.copy()
-    if DEBUG:
-        cv.imwrite(
-            os.path.join(DEBUG_OUTPUT_DIR, "filtered-image-1.jpg"), filtered_image
-        )
-
-    filtered_image[black_ink_contours_mask > 0] = (0, 0, 0)
-    filtered_image = cv.GaussianBlur(filtered_image, (3, 3), sigmaX=0, sigmaY=0)
-    # filtered_image = cv.blur(filtered_image, (2, 2), anchor=(-1,-1))
-    if DEBUG:
-        cv.imwrite(
-            os.path.join(DEBUG_OUTPUT_DIR, "filtered-image-2.jpg"), filtered_image
-        )
-
-    alpha = thicken_alpha
-    beta = 1.0 - alpha
-    gamma = 0.0
-    output_image = cv.addWeighted(filtered_image, alpha, input_image, beta, gamma)
-
-    return output_image
-
-
 def _get_black_ink_mask(image: cv.typing.MatLike) -> cv.typing.MatLike:
     gray_image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
     black_ink_mask = cv.adaptiveThreshold(
@@ -202,50 +132,4 @@ def _get_black_ink_mask(image: cv.typing.MatLike) -> cv.typing.MatLike:
         ADAPTIVE_THRESHOLD_CONST_SUBTRACT,
     )
 
-    # color_removed_image = cv.cvtColor(input_image, cv.COLOR_BGR2HSV)
-    # black_ink_mask = cv.inRange(
-    #     color_removed_image, LOWER_HSV_BLACK_CUT, HIGHER_HSV_BLACK_CUT
-    # )
-
     return black_ink_mask
-
-
-if __name__ == "__main__":
-    DEBUG = True
-
-    start_time = time.time()
-
-    # src_image_file = (
-    #     "/home/greg/Books/Carl Barks/Fantagraphics/"
-    #     "Carl Barks Vol. 7 - Donald Duck - Lost in the Andes (Digital-Empire)/images/179.jpg"
-    # )
-    # src_image_file = "restore-tests/test-image-1.jpg"
-    # src_image_file = "restore-tests/test-image-2.jpg"
-    src_image_file = "restore-tests/test-image-3.jpg"
-    # src_image_file = "restore-tests/simple-test-image.jpg"
-
-    src_image = cv.imread(src_image_file)
-    print(f"Src image shape: {src_image.shape}")
-
-    median_filtered_image = get_median_filter(src_image)
-
-    # thicken_line_alpha = 0.0  # depends on the comic - works for turk (test-image-1.jpg)
-    thicken_line_alpha = (
-        0.5  # depends on the comic - works for Sunken Yacht (test-image-2.jpg)
-    )
-    if thicken_line_alpha < SMALL_FLOAT:
-        improved_image = median_filtered_image
-    else:
-        improved_image = get_thickened_black_lines(
-            median_filtered_image, thicken_line_alpha
-        )
-
-    cv.imwrite(
-        os.path.join(DEBUG_OUTPUT_DIR, "improved-image.jpg"),
-        improved_image,
-        [int(cv.IMWRITE_JPEG_QUALITY), 95],
-    )
-
-    end_time = time.time()
-    elapsed_time = round(end_time - start_time, 2)
-    print(f"Execution time: {elapsed_time} seconds")

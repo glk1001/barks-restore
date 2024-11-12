@@ -1,18 +1,28 @@
+import os.path
+from pathlib import Path
+
 import cv2 as cv
 import gmic
 import numpy as np
 
+from image_io import write_cv_image_file
+
 
 def inpaint_image_file(
-    in_file: str, black_ink_mask_file: str, black_ink_file: str, out_file: str
+    work_dir: str,
+    in_file: str,
+    black_ink_mask_file: str,
+    black_ink_file: str,
+    out_file: str,
 ):
     input_image = cv.imread(in_file)
     assert input_image.shape[2] == 3
     black_ink_mask = cv.imread(black_ink_mask_file, cv.COLOR_BGR2GRAY)
     assert black_ink_mask.shape[2] == 3
     black_ink = cv.imread(black_ink_file, -1)
-    # print(black_ink.shape)
     assert black_ink.shape[2] == 4
+
+    in_file_stem = Path(in_file).stem
 
     _, remove_mask = cv.threshold(black_ink_mask, 100, 255, cv.THRESH_BINARY_INV)
     assert remove_mask.shape[2] == 3
@@ -20,9 +30,9 @@ def inpaint_image_file(
     _, _, r_remove_mask = cv.split(remove_mask)
 
     remove_mask = np.uint8(r_remove_mask)
-    # print(remove_mask.shape)
-    remove_mask_file = "/tmp/remove-mask.png"
-    cv.imwrite(remove_mask_file, remove_mask)
+    # logging.info(remove_mask.shape)
+    remove_mask_file = os.path.join(work_dir, f"{in_file_stem}-remove-mask.png")
+    write_cv_image_file(remove_mask_file, remove_mask)
 
     # gmic blend/remove - pipeline??
     b, g, r = cv.split(input_image)
@@ -30,10 +40,12 @@ def inpaint_image_file(
     g = np.where(remove_mask == 255, 0, g)
     r = np.where(remove_mask == 255, 255, r)
     out_image = cv.merge([b, g, r])
-    in_file_no_black_ink = "/tmp/input_no_black_ink.png"
-    cv.imwrite(in_file_no_black_ink, out_image)
+    in_file_no_black_ink = os.path.join(
+        work_dir, f"{in_file_stem}-input_no_black_ink.png"
+    )
+    write_cv_image_file(in_file_no_black_ink, out_image)
 
-    inpaint_removed_file = "/tmp/inpaint_removed.png"
+    inpaint_removed_file = os.path.join(work_dir, f"{in_file_stem}-inpaint_removed.png")
     gmic.run(
         f'"{in_file_no_black_ink}" -fx_inpaint_matchpatch "1","5","26","5","1","255","0","0","255","1","0" output "{inpaint_removed_file}"'
     )

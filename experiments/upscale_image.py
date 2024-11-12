@@ -1,16 +1,23 @@
+import logging
 import os
 import subprocess
 from pathlib import Path
 
-from PIL.features import check
+from image_io import add_png_metadata
+
+UPSCAYL_BIN = os.path.join(str(Path.home()), ".local/share/upscayl/bin/upscayl-bin")
+UPSCAYL_MODELS_DIR = os.path.join(str(Path.home()), ".local/share/upscayl/models")
+UPSCAYL_MODEL = "ultramix_balanced"
+UPSCAYL_OUTPUT_FORMAT = "png"
+UPSCAYL_OUTPUT_EXTENSION = ".png"
 
 
 def upscale_image_file(in_file: str, out_file: str, scale: int = 2):
-    upscayl_bin = os.path.join(str(Path.home()), ".local/share/upscayl/bin/upscayl-bin")
-    upscayl_models_dir = os.path.join(str(Path.home()), ".local/share/upscayl/models")
+    assert os.path.splitext(out_file)[1] == UPSCAYL_OUTPUT_EXTENSION
+    assert scale in [2, 4]
 
     run_args = [
-        upscayl_bin,
+        UPSCAYL_BIN,
         "-i",
         in_file,
         "-o",
@@ -18,32 +25,32 @@ def upscale_image_file(in_file: str, out_file: str, scale: int = 2):
         "-s",
         str(scale),
         "-n",
-        "ultramix_balanced",
+        UPSCAYL_MODEL,
         "-f",
-        "jpg",
+        UPSCAYL_OUTPUT_FORMAT,
         "-c",
-        '0',
+        "0",
         "-m",
-        upscayl_models_dir,
+        UPSCAYL_MODELS_DIR,
+        "-v",
     ]
-
-    # subprocess.run(
-    #     run_args,
-    #     capture_output=True,
-    #     text=True,
-    #     check=True,
-    # )
-    #
 
     process = subprocess.Popen(run_args, stdout=subprocess.PIPE, text=True)
 
     while True:
         output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
+        if output == "" and process.poll() is not None:
             break
         if output:
-            print(output.strip())
+            logging.info(output.strip())
 
     rc = process.poll()
     if rc != 0:
         raise Exception("Upscayl failed.")
+
+    metadata = {
+        "Source file": in_file,
+        "Scale": str(scale),
+        "Upscayl model": UPSCAYL_MODEL,
+    }
+    add_png_metadata(out_file, metadata)

@@ -1,10 +1,12 @@
 import os
 from collections import OrderedDict
+from pathlib import Path
 from typing import Tuple, Dict
 
 import cv2 as cv
 import numpy as np
 
+from image_io import write_cv_image_file
 from remove_alias_artifacts import get_median_filter
 
 DEBUG_WRITE_COLOR_COUNTS = True
@@ -66,22 +68,24 @@ def write_color_counts(filename: str, image: cv.typing.MatLike):
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
 
-def remove_colors_from_image(
-    out_dir: str, out_basename: str, image: cv.typing.MatLike
-) -> str:
+def remove_colors_from_image(work_dir: str, image: cv.typing.MatLike, out_file: str):
+    out_file_stem = Path(out_file).stem
+
     out_image = get_median_filter(image)
     median_filter_image_file = os.path.join(
-        out_dir, out_basename + "-median-filtered.jpg"
+        work_dir, out_file_stem + "-median-filtered-pre-remove-colors.png"
     )
-    cv.imwrite(median_filter_image_file, out_image)
+    write_cv_image_file(median_filter_image_file, out_image)
 
     posterize_image(out_image)
-    posterized_image_file = os.path.join(out_dir, out_basename + "-posterized.jpg")
-    cv.imwrite(posterized_image_file, out_image)
+    posterized_image_file = os.path.join(
+        work_dir, out_file_stem + "-posterized-pre-remove-colors.png"
+    )
+    write_cv_image_file(posterized_image_file, out_image)
 
     if DEBUG_WRITE_COLOR_COUNTS:
         posterized_counts_file = os.path.join(
-            out_dir, out_basename + "-posterized-color-counts.txt"
+            work_dir, out_file_stem + "-posterized-color-counts-pre-remove-colors.txt"
         )
         write_color_counts(posterized_counts_file, out_image)
 
@@ -90,11 +94,8 @@ def remove_colors_from_image(
 
     if DEBUG_WRITE_COLOR_COUNTS:
         remaining_color_counts_file = os.path.join(
-            out_dir, out_basename + "-remaining-color-counts.txt"
+            work_dir, out_file_stem + "-remaining-color-counts-post-remove-colors.txt"
         )
         write_color_counts(remaining_color_counts_file, out_image)
 
-    out_image_file = os.path.join(out_dir, out_basename + "-color-removed.png")
-    cv.imwrite(out_image_file, out_image)
-
-    return out_image_file
+    write_cv_image_file(out_file, out_image)
