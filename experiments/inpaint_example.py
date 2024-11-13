@@ -8,4 +8,6 @@ if __name__ == "__main__":
     black_ink_add_file = sys.argv[3]
     output_inpaint_file = f"{input_image_file}-inpaint.png"
 
-    inpaint_image_file (input_image_file, black_ink_remove_file, black_ink_add_file, output_inpaint_file)
+    inpaint_image_file(
+        input_image_file, black_ink_remove_file, black_ink_add_file, output_inpaint_file
+    )

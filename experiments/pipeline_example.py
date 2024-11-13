@@ -7,9 +7,10 @@ from pathlib import Path
 import cv2 as cv
 import gmic
 
-from image_io import add_png_metadata
+from image_io import add_png_metadata, write_cv_image_file
 from inpaint import inpaint_image_file
 from potrace_to_svg import image_file_to_svg, svg_file_to_png
+from remove_alias_artifacts import get_median_filter
 from remove_colors import remove_colors_from_image
 from smooth_image import smooth_image_file
 from upscale_image import upscale_image_file
@@ -50,11 +51,14 @@ def do_restore_process(
     upscale_image_stem = upscale_in_file.stem
     upscale_image = cv.imread(str(upscale_in_file))
 
+    removed_jpg_artifacts_file = os.path.join(work_dir, f"{upscale_image_stem}-median-filtered.png")
+    do_remove_jpg_artifacts(upscale_image, removed_jpg_artifacts_file)
+
     removed_colors_file = os.path.join(work_dir, f"{upscale_image_stem}-color-removed.png")
-    do_remove_colors(work_dir, upscale_image, removed_colors_file)
+    do_remove_colors(work_dir, removed_jpg_artifacts_file, removed_colors_file)
 
     smoothed_file = os.path.join(work_dir, f"{upscale_image_stem}-color-removed-smoothed.png")
-    do_smooth(removed_colors_file, smoothed_file)
+    do_smooth_removed_colors(removed_colors_file, smoothed_file)
 
     svg_file = os.path.join(out_dir, f"{upscale_image_stem}.svg")
     png_of_svg_file = svg_file + ".png"
@@ -66,19 +70,32 @@ def do_restore_process(
     do_inpaint(work_dir, str(upscale_in_file), removed_colors_file, png_of_svg_file, inpainted_file)
 
     restored_file = os.path.join(out_dir, f"{upscale_image_stem}-restored-orig-size.png")
-    do_output_resized_restored_file(inpainted_file, scale, restored_file)
-    add_restoration_metadata(str(srce_file), str(upscale_in_file), scale, restored_file)
+    do_resize_restored_file(inpainted_file, scale, restored_file)
+    do_add_restoration_metadata(str(srce_file), str(upscale_in_file), scale, restored_file)
 
     logging.info(
         f'\nTime taken to process "{os.path.basename(srce_file)}": {int(time.time() - start)}s.'
     )
 
 
-def do_remove_colors(work_dir: str, upscale_image: cv.typing.MatLike, removed_colors_file: str):
+def do_remove_jpg_artifacts(upscale_image: cv.typing.MatLike, removed_artifacts_file: str):
+    start = time.time()
+    logging.info(f'\nGenerating jpeg artifacts removed file "{removed_artifacts_file}"...')
+
+    out_image = get_median_filter(upscale_image)
+    write_cv_image_file(removed_artifacts_file, out_image)
+
+    logging.info(
+        f'Time taken to remove jpeg artifacts for "{os.path.basename(removed_artifacts_file)}":'
+        f" {int(time.time() - start)}s."
+    )
+
+
+def do_remove_colors(work_dir: str, removed_artifacts_file: str, removed_colors_file: str):
     start = time.time()
     logging.info(f'\nGenerating color removed file "{removed_colors_file}"...')
 
-    remove_colors_from_image(work_dir, upscale_image, removed_colors_file)
+    remove_colors_from_image(work_dir, removed_artifacts_file, removed_colors_file)
 
     logging.info(
         f'Time taken to remove colors for "{os.path.basename(removed_colors_file)}":'
@@ -86,9 +103,9 @@ def do_remove_colors(work_dir: str, upscale_image: cv.typing.MatLike, removed_co
     )
 
 
-def do_smooth(removed_colors_file: str, smoothed_file: str):
+def do_smooth_removed_colors(removed_colors_file: str, smoothed_file: str):
     start = time.time()
-    logging.info(f'\nBefore svg, generating smoothed file "{smoothed_file}"...')
+    logging.info(f'\nGenerating smoothed file "{smoothed_file}"...')
 
     smooth_image_file(removed_colors_file, smoothed_file)
 
@@ -98,11 +115,11 @@ def do_smooth(removed_colors_file: str, smoothed_file: str):
     )
 
 
-def do_generate_svg(smoothed_file: str, svg_file: str, png_of_svg_file: str):
+def do_generate_svg(smoothed_removed_colors_file: str, svg_file: str, png_of_svg_file: str):
     start = time.time()
     logging.info(f'\nGenerating svg file "{svg_file}"...')
 
-    image_file_to_svg(smoothed_file, svg_file)
+    image_file_to_svg(smoothed_removed_colors_file, svg_file)
 
     logging.info(
         f'Time taken to generate svg "{os.path.basename(svg_file)}":'
@@ -137,7 +154,7 @@ def do_inpaint(
     )
 
 
-def do_output_resized_restored_file(inpainted_file: str, scale: int, restored_file: str):
+def do_resize_restored_file(inpainted_file: str, scale: int, restored_file: str):
     logging.info(f'\nResizing restoring file to "{restored_file}"...')
 
     scale_percent = 25 if scale == 4 else 50
@@ -147,7 +164,7 @@ def do_output_resized_restored_file(inpainted_file: str, scale: int, restored_fi
     )
 
 
-def add_restoration_metadata(
+def do_add_restoration_metadata(
     srce_file: str, upscaled_file: str, scale: int, restored_png_file: str
 ):
     # TODO: Save other params used in process.

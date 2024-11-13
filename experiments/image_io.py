@@ -10,9 +10,7 @@ SAVE_JPG_QUALITY = 95
 SAVE_JPG_COMPRESS_LEVEL = 9
 
 
-def write_cv_image_file(
-    file: str, image: cv.typing.MatLike, comments: List[str] = None
-):
+def write_cv_image_file(file: str, image: cv.typing.MatLike, comments: List[str] = None):
     if os.path.splitext(file)[1] == ".jpg":
         _write_cv_jpeg_file(file, image, comments)
         return

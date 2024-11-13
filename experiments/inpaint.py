@@ -40,9 +40,7 @@ def inpaint_image_file(
     g = np.where(remove_mask == 255, 0, g)
     r = np.where(remove_mask == 255, 255, r)
     out_image = cv.merge([b, g, r])
-    in_file_no_black_ink = os.path.join(
-        work_dir, f"{in_file_stem}-input_no_black_ink.png"
-    )
+    in_file_no_black_ink = os.path.join(work_dir, f"{in_file_stem}-input_no_black_ink.png")
     write_cv_image_file(in_file_no_black_ink, out_image)
 
     inpaint_removed_file = os.path.join(work_dir, f"{in_file_stem}-inpaint_removed.png")

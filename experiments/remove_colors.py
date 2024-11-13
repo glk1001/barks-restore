@@ -7,7 +7,6 @@ import cv2 as cv
 import numpy as np
 
 from image_io import write_cv_image_file
-from remove_alias_artifacts import get_median_filter
 
 DEBUG_WRITE_COLOR_COUNTS = True
 
@@ -68,14 +67,10 @@ def write_color_counts(filename: str, image: cv.typing.MatLike):
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
 
-def remove_colors_from_image(work_dir: str, image: cv.typing.MatLike, out_file: str):
+def remove_colors_from_image(work_dir: str, in_file: str, out_file: str):
     out_file_stem = Path(out_file).stem
 
-    out_image = get_median_filter(image)
-    median_filter_image_file = os.path.join(
-        work_dir, out_file_stem + "-median-filtered-pre-remove-colors.png"
-    )
-    write_cv_image_file(median_filter_image_file, out_image)
+    out_image = cv.imread(in_file)
 
     posterize_image(out_image)
     posterized_image_file = os.path.join(

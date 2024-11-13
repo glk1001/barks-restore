@@ -41,9 +41,7 @@ def image_file_to_svg(in_file: str, out_file: str):
                     parts.append(f"C{a.x},{a.y} {b.x},{b.y} {c.x},{c.y}")
             parts.append("z")
 
-        fp.write(
-            f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>'
-        )
+        fp.write(f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>')
         fp.write("</svg>")
 
 

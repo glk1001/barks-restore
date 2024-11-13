@@ -10,12 +10,6 @@ DEBUG_OUTPUT_DIR = "/tmp"
 MEDIAN_BLUR_APERTURE_SIZE = 7
 ADAPTIVE_THRESHOLD_BLOCK_SIZE = 21
 ADAPTIVE_THRESHOLD_CONST_SUBTRACT = 12  # Careful here with including alias artifacts
-SMALL_FLOAT = 0.0001
-
-LOWER_HSV_BLACK_CUT = np.array([0, 0, 0])
-HIGHER_HSV_BLACK_CUT = np.array(
-    [360, 255, 150]
-)  # getting this right important for thin lines
 
 
 def _median_filter(
@@ -109,9 +103,7 @@ def get_median_filter(input_image: cv.typing.MatLike) -> cv.typing.MatLike:
             enlarged_black_ink_mask,
         )
 
-    filtered_image = _median_filter(
-        input_image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE
-    )
+    filtered_image = _median_filter(input_image, enlarged_black_ink_mask, MEDIAN_BLUR_APERTURE_SIZE)
     if DEBUG:
         cv.imwrite(
             os.path.join(DEBUG_OUTPUT_DIR, "median-filtered-image.jpg"),
