@@ -2,6 +2,8 @@ import cairosvg
 from PIL import Image
 from potrace import Bitmap, POTRACE_TURNPOLICY_MINORITY
 
+Image.MAX_IMAGE_PIXELS = None
+
 
 def image_file_to_svg(in_file: str, out_file: str):
     image = Image.open(in_file)
