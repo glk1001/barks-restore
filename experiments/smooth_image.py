@@ -3,7 +3,7 @@ import gmic
 
 def smooth_image_file(in_file: str, out_file: str):
     # TODO: Explain or constify these params.
-    smooth_params = '427,0.496,0.581,2.48,5.3,0.328,59.17,0.9379,0,1,2,0,"0",nan,nan'
+    smooth_params = '420,0.5,0.6,2.5,5.0,0.3,60.0,0.94,0,1,2,0,"0",nan,nan'
     gmic.run(
         f'"{in_file}"'
         f" -repeat 5 fx_smooth_anisotropic {smooth_params} -done"
