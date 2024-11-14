@@ -3,11 +3,11 @@ import logging
 import os
 import time
 from pathlib import Path
+from typing import Dict
 
 import cv2 as cv
-import gmic
 
-from image_io import add_png_metadata, write_cv_image_file
+from image_io import resize_image_file, write_cv_image_file
 from inpaint import inpaint_image_file
 from potrace_to_svg import image_file_to_svg, svg_file_to_png
 from remove_alias_artifacts import get_median_filter
@@ -69,9 +69,14 @@ def do_restore_process(
     inpainted_file = os.path.join(work_dir, f"{upscale_image_stem}-inpainted.png")
     do_inpaint(work_dir, str(upscale_in_file), removed_colors_file, png_of_svg_file, inpainted_file)
 
-    restored_file = os.path.join(out_dir, f"{upscale_image_stem}-restored-orig-size.png")
-    do_resize_restored_file(inpainted_file, scale, restored_file)
-    do_add_restoration_metadata(str(srce_file), str(upscale_in_file), scale, restored_file)
+    restored_file = os.path.join(out_dir, f"{upscale_image_stem}-restored-orig-size.jpg")
+    # TODO: Save other params used in process.
+    restored_file_metadata = {
+        "Source file": str(srce_file),
+        "Upscayl file": str(upscale_in_file),
+        "Upscayl scale": str(scale),
+    }
+    do_resize_restored_file(inpainted_file, scale, restored_file, restored_file_metadata)
 
     logging.info(
         f'\nTime taken to process "{os.path.basename(srce_file)}": {int(time.time() - start)}s.'
@@ -154,26 +159,12 @@ def do_inpaint(
     )
 
 
-def do_resize_restored_file(inpainted_file: str, scale: int, restored_file: str):
+def do_resize_restored_file(
+    inpainted_file: str, scale: int, restored_file: str, metadata: Dict[str, str]
+):
     logging.info(f'\nResizing restoring file to "{restored_file}"...')
 
-    scale_percent = 25 if scale == 4 else 50
-    gmic.run(
-        f'"{inpainted_file}" +resize[-1] {scale_percent}%,{scale_percent}%,1,3,2'
-        f' output[-1] "{restored_file}"'
-    )
-
-
-def do_add_restoration_metadata(
-    srce_file: str, upscaled_file: str, scale: int, restored_png_file: str
-):
-    # TODO: Save other params used in process.
-    metadata = {
-        "Source file": srce_file,
-        "Upscayl file": upscaled_file,
-        "Upscayl scale": str(scale),
-    }
-    add_png_metadata(restored_png_file, metadata)
+    resize_image_file(inpainted_file, scale, restored_file, metadata)
 
 
 OUT_DIR = "/home/greg/Prj/workdir/restore-tests"
@@ -185,8 +176,9 @@ setup_logging(logging.INFO)
 
 test_image_files = [
     Path("/home/greg/Prj/github/restore-barks/experiments/test-image-1.jpg"),
-    Path("/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg"),
-    Path("/home/greg/Prj/github/restore-barks/experiments/test-image-3.jpg"),
+    #    Path("/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg"),
+    #    Path("/home/greg/Prj/github/restore-barks/experiments/test-image-3.jpg"),
+    #    Path("/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 2 - Donald Duck - Frozen Gold (Salem-Empire)/images/007.jpg")
 ]
 # test_image_file = Path("/home/greg/Prj/github/restore-barks/experiments/test-image-3-noise-reduction.jpg")
 # test_image_file = Path("/home/greg/Books/Carl Barks/Silent Night (Gemstone)/Gemstone-cp-3/01-upscayled_upscayl_2x_ultramix_balanced.jpg")
@@ -195,9 +187,9 @@ SCALE = 4
 
 start_upscale = time.time()
 
-for image_file in test_image_files:
-    upscale_file = get_upscale_filename(OUT_DIR, image_file, SCALE)
-    do_upscale(image_file, upscale_file)
+# for image_file in test_image_files:
+#     upscale_file = get_upscale_filename(OUT_DIR, image_file, SCALE)
+#     do_upscale(image_file, upscale_file)
 
 logging.info(f'\nTime taken to upscale all files": {int(time.time() - start_upscale)}s.')
 
