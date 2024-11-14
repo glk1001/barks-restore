@@ -56,7 +56,7 @@ class RestoreProcess:
         self.png_of_svg_file = self.svg_file + ".png"
         self.inpainted_file = os.path.join(work_dir, f"{self.upscale_image_stem}-inpainted.png")
         self.restored_file = os.path.join(
-            out_dir, f"{self.upscale_image_stem}-restored-orig-size.jpg"
+            out_dir, f"{self.upscale_image_stem}-restored-orig-size.png"
         )
 
     def do_part1(self):
@@ -76,7 +76,9 @@ class RestoreProcess:
     def do_remove_jpg_artifacts(self):
         try:
             start = time.time()
-            logging.info(f'\nGenerating jpeg artifacts removed file "{self.removed_artifacts_file}"...')
+            logging.info(
+                f'\nGenerating jpeg artifacts removed file "{self.removed_artifacts_file}"...'
+            )
 
             upscale_image = cv.imread(str(self.upscale_srce_file))
             out_image = get_median_filter(upscale_image)
@@ -235,44 +237,30 @@ test_image_files = [
     # Path("/home/greg/Prj/github/restore-barks/experiments/test-image-1.jpg"),
     # Path("/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg"),
     # Path("/home/greg/Prj/github/restore-barks/experiments/test-image-3.jpg"),
-    # Path(
-    #     "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 2 - Donald Duck - Frozen Gold (Salem-Empire)/images/007.jpg"
-    # ),
-    # Path(
-    #     "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 2 - Donald Duck - Frozen Gold (Salem-Empire)/images/008.jpg"
-    # ),
-    # Path(
-    #     "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 2 - Donald Duck - Frozen Gold (Salem-Empire)/images/009.jpg"
-    # ),
-    # Path(
-    #     "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 2 - Donald Duck - Frozen Gold (Salem-Empire)/images/010.jpg"
-    # ),
-    # Path(
-    #     "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 2 - Donald Duck - Frozen Gold (Salem-Empire)/images/011.jpg"
-    # ),
-    # Path(
-    #     "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 2 - Donald Duck - Frozen Gold (Salem-Empire)/images/012.jpg"
-    # ),
-    # Path(
-    #     "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 2 - Donald Duck - Frozen Gold (Salem-Empire)/images/013.jpg"
-    # ),
-    Path(os.path.join(FANTA_DIR, "014.jpg")),
-    Path(os.path.join(FANTA_DIR, "015.jpg")),
-    Path(os.path.join(FANTA_DIR, "016.jpg")),
-    Path(os.path.join(FANTA_DIR, "017.jpg")),
-    Path(os.path.join(FANTA_DIR, "018.jpg")),
-    Path(os.path.join(FANTA_DIR, "019.jpg")),
-    Path(os.path.join(FANTA_DIR, "020.jpg")),
-    Path(os.path.join(FANTA_DIR, "021.jpg")),
-    Path(os.path.join(FANTA_DIR, "022.jpg")),
-    Path(os.path.join(FANTA_DIR, "023.jpg")),
-    Path(os.path.join(FANTA_DIR, "024.jpg")),
-    Path(os.path.join(FANTA_DIR, "025.jpg")),
-    Path(os.path.join(FANTA_DIR, "026.jpg")),
-    Path(os.path.join(FANTA_DIR, "027.jpg")),
-    Path(os.path.join(FANTA_DIR, "028.jpg")),
-    Path(os.path.join(FANTA_DIR, "029.jpg")),
-    Path(os.path.join(FANTA_DIR, "030.jpg")),
+    # Path(os.path.join(FANTA_DIR, "007.jpg")),
+    Path(os.path.join(FANTA_DIR, "008.jpg")),
+    Path(os.path.join(FANTA_DIR, "009.jpg")),
+    Path(os.path.join(FANTA_DIR, "010.jpg")),
+    Path(os.path.join(FANTA_DIR, "011.jpg")),
+    Path(os.path.join(FANTA_DIR, "012.jpg")),
+    Path(os.path.join(FANTA_DIR, "013.jpg")),
+    # Path(os.path.join(FANTA_DIR, "014.jpg")),
+    # Path(os.path.join(FANTA_DIR, "015.jpg")),
+    # Path(os.path.join(FANTA_DIR, "016.jpg")),
+    # Path(os.path.join(FANTA_DIR, "017.jpg")),
+    # Path(os.path.join(FANTA_DIR, "018.jpg")),
+    # Path(os.path.join(FANTA_DIR, "019.jpg")),
+    # Path(os.path.join(FANTA_DIR, "020.jpg")),
+    # Path(os.path.join(FANTA_DIR, "021.jpg")),
+    # Path(os.path.join(FANTA_DIR, "022.jpg")),
+    # Path(os.path.join(FANTA_DIR, "023.jpg")),
+    # Path(os.path.join(FANTA_DIR, "024.jpg")),
+    # Path(os.path.join(FANTA_DIR, "025.jpg")),
+    # Path(os.path.join(FANTA_DIR, "026.jpg")),
+    # Path(os.path.join(FANTA_DIR, "027.jpg")),
+    # Path(os.path.join(FANTA_DIR, "028.jpg")),
+    # Path(os.path.join(FANTA_DIR, "029.jpg")),
+    # Path(os.path.join(FANTA_DIR, "030.jpg")),
 ]
 # test_image_file = Path("/home/greg/Prj/github/restore-barks/experiments/test-image-3-noise-reduction.jpg")
 # test_image_file = Path("/home/greg/Books/Carl Barks/Silent Night (Gemstone)/Gemstone-cp-3/01-upscayled_upscayl_2x_ultramix_balanced.jpg")
@@ -299,21 +287,29 @@ for image_file in test_image_files:
 
 
 part1_max_workers = 10
+
+
 def run_restore_part1(restore_process: RestoreProcess):
     restore_process.do_part1()
 
 
 part2_max_workers = 3
+
+
 def run_restore_part2(restore_process: RestoreProcess):
     restore_process.do_part2_memory_hungry()
 
 
 part3_max_workers = 10
+
+
 def run_restore_part3(restore_process: RestoreProcess):
     restore_process.do_part3()
 
 
 part4_max_workers = 2
+
+
 def run_restore_part4(restore_process: RestoreProcess):
     restore_process.do_part4_memory_hungry()
 
