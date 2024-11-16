@@ -14,7 +14,6 @@ UPSCAYL_OUTPUT_EXTENSION = ".png"
 
 def upscale_image_file(in_file: str, out_file: str, scale: int = 2):
     assert os.path.splitext(out_file)[1] == UPSCAYL_OUTPUT_EXTENSION
-    assert scale in [2, 4]
 
     run_args = [
         UPSCAYL_BIN,
