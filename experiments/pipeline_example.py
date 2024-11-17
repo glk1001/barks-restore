@@ -45,23 +45,23 @@ os.makedirs(WORK_DIR, exist_ok=True)
 
 setup_logging(logging.INFO)
 
-# FANTA_DIR = "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 2 - Donald Duck - Frozen Gold (Salem-Empire)/images"
-FANTA_DIR = "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 7 - Donald Duck - Lost in the Andes (Digital-Empire)/images"
+FANTA_DIR = "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 2 - Donald Duck - Frozen Gold (Salem-Empire)/images"
+#FANTA_DIR = "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 7 - Donald Duck - Lost in the Andes (Digital-Empire)/images"
 
 test_image_files = [
     # Path("/home/greg/Prj/github/restore-barks/experiments/test-image-1.jpg"),
     # Path("/home/greg/Prj/github/restore-barks/experiments/test-image-2.jpg"),
     # Path("/home/greg/Prj/github/restore-barks/experiments/test-image-3.jpg"),
-    Path(os.path.join(FANTA_DIR, "179.jpg")),
-    Path(os.path.join(FANTA_DIR, "180.jpg")),
-    Path(os.path.join(FANTA_DIR, "181.jpg")),
-    Path(os.path.join(FANTA_DIR, "182.jpg")),
-    Path(os.path.join(FANTA_DIR, "183.jpg")),
-    Path(os.path.join(FANTA_DIR, "184.jpg")),
-    Path(os.path.join(FANTA_DIR, "185.jpg")),
-    Path(os.path.join(FANTA_DIR, "186.jpg")),
-    Path(os.path.join(FANTA_DIR, "187.jpg")),
-    Path(os.path.join(FANTA_DIR, "188.jpg")),
+    # Path(os.path.join(FANTA_DIR, "179.jpg")),
+    # Path(os.path.join(FANTA_DIR, "180.jpg")),
+    # Path(os.path.join(FANTA_DIR, "181.jpg")),
+    # Path(os.path.join(FANTA_DIR, "182.jpg")),
+    # Path(os.path.join(FANTA_DIR, "183.jpg")),
+    # Path(os.path.join(FANTA_DIR, "184.jpg")),
+    # Path(os.path.join(FANTA_DIR, "185.jpg")),
+    # Path(os.path.join(FANTA_DIR, "186.jpg")),
+    # Path(os.path.join(FANTA_DIR, "187.jpg")),
+    # Path(os.path.join(FANTA_DIR, "188.jpg")),
     # Path(os.path.join(FANTA_DIR, "007.jpg")),
     # Path(os.path.join(FANTA_DIR, "008.jpg")),
     # Path(os.path.join(FANTA_DIR, "009.jpg")),
@@ -86,6 +86,52 @@ test_image_files = [
     # Path(os.path.join(FANTA_DIR, "028.jpg")),
     # Path(os.path.join(FANTA_DIR, "029.jpg")),
     # Path(os.path.join(FANTA_DIR, "030.jpg")),
+    # Path(os.path.join(FANTA_DIR, "031.jpg")),
+    # Path(os.path.join(FANTA_DIR, "032.jpg")),
+    # Path(os.path.join(FANTA_DIR, "033.jpg")),
+    # Path(os.path.join(FANTA_DIR, "034.jpg")),
+    # Path(os.path.join(FANTA_DIR, "035.jpg")),
+    # Path(os.path.join(FANTA_DIR, "036.jpg")),
+    # Path(os.path.join(FANTA_DIR, "037.jpg")),
+    # Path(os.path.join(FANTA_DIR, "038.jpg")),
+    # Path(os.path.join(FANTA_DIR, "039.jpg")),
+    # Path(os.path.join(FANTA_DIR, "040.jpg")),
+    # Path(os.path.join(FANTA_DIR, "041.jpg")),
+    # Path(os.path.join(FANTA_DIR, "042.jpg")),
+    # Path(os.path.join(FANTA_DIR, "043.jpg")),
+    # Path(os.path.join(FANTA_DIR, "044.jpg")),
+    # Path(os.path.join(FANTA_DIR, "045.jpg")),
+    # Path(os.path.join(FANTA_DIR, "046.jpg")),
+    # Path(os.path.join(FANTA_DIR, "047.jpg")),
+    # Path(os.path.join(FANTA_DIR, "048.jpg")),
+    # Path(os.path.join(FANTA_DIR, "049.jpg")),
+    # Path(os.path.join(FANTA_DIR, "050.jpg")),
+    # Path(os.path.join(FANTA_DIR, "051.jpg")),
+    # Path(os.path.join(FANTA_DIR, "052.jpg")),
+    # Path(os.path.join(FANTA_DIR, "053.jpg")),
+    # Path(os.path.join(FANTA_DIR, "054.jpg")),
+    # Path(os.path.join(FANTA_DIR, "055.jpg")),
+    # Path(os.path.join(FANTA_DIR, "056.jpg")),
+    # Path(os.path.join(FANTA_DIR, "057.jpg")),
+    # Path(os.path.join(FANTA_DIR, "058.jpg")),
+    # Path(os.path.join(FANTA_DIR, "059.jpg")),
+    # Path(os.path.join(FANTA_DIR, "060.jpg")),
+    # Path(os.path.join(FANTA_DIR, "061.jpg")),
+    # Path(os.path.join(FANTA_DIR, "062.jpg")),
+    # Path(os.path.join(FANTA_DIR, "063.jpg")),
+    # Path(os.path.join(FANTA_DIR, "064.jpg")),
+    # Path(os.path.join(FANTA_DIR, "065.jpg")),
+    # Path(os.path.join(FANTA_DIR, "066.jpg")),
+    # Path(os.path.join(FANTA_DIR, "067.jpg")),
+    # Path(os.path.join(FANTA_DIR, "068.jpg")),
+    # Path(os.path.join(FANTA_DIR, "069.jpg")),
+    # Path(os.path.join(FANTA_DIR, "070.jpg")),
+    # Path(os.path.join(FANTA_DIR, "071.jpg")),
+    # Path(os.path.join(FANTA_DIR, "072.jpg")),
+    # Path(os.path.join(FANTA_DIR, "073.jpg")),
+    # Path(os.path.join(FANTA_DIR, "074.jpg")),
+    # Path(os.path.join(FANTA_DIR, "075.jpg")),
+    Path(os.path.join(FANTA_DIR, "076.jpg")),
 ]
 # test_image_file = Path("/home/greg/Prj/github/restore-barks/experiments/test-image-3-noise-reduction.jpg")
 # test_image_file = Path("/home/greg/Books/Carl Barks/Silent Night (Gemstone)/Gemstone-cp-3/01-upscayled_upscayl_2x_ultramix_balanced.jpg")
@@ -100,7 +146,8 @@ for image_file in test_image_files:
     upscale_file = get_upscale_filename(OUT_DIR, image_file, SCALE)
     do_upscale(image_file, upscale_file)
 
-logging.info(f'\nTime taken to upscale all files": {int(time.time() - start_upscale)}s.')
+logging.info(f'\nTime taken to upscale all {len(test_image_files)} files":'
+             f' {int(time.time() - start_upscale)}s.')
 
 
 start_restore = time.time()
@@ -156,6 +203,7 @@ with concurrent.futures.ProcessPoolExecutor(part4_max_workers) as executor:
         executor.submit(run_restore_part4, process)
 
 
-logging.info(f'\nTime taken to restore all files": {int(time.time() - start_restore)}s.')
+logging.info(f'\nTime taken to restore all {len(restore_processes)} files":'
+             f''f' {int(time.time() - start_restore)}s.')
 
 check_for_errors(restore_processes)
