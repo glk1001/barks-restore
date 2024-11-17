@@ -1,0 +1,73 @@
+BARKS RESTORE
+-------------
+
+TIMINGS 15-11-24: total: 960, restore: 400, upscayl: 560
+
+Page restore notes mandatory
+  010-restore-notes.txt
+
+Get 2TB drive to store upscayl images
+Get extra 32GB RAM
+
+Investigate more computers
+
+Investigate watershed or segmentation
+
+Investigate best upscayl settings
+
+Investigate best smoothing options
+
+Investigate best svg options
+
+Investigate best inpainting options
+
+Investigate best target resolution
+
+Investigate gmic flat colors
+
+Investigate Speech bubble extractor
+
+Use gmic pipeline to optimize?
+
+Color palette linked to panels
+
+Panels list
+
+Special cases linked to panels
+
+Fixes list
+
+Restructure/ package projects (git submodules)
+  Barks-fantagraphics
+  Barks-restore
+  Barks-compleat-digital
+  Kumiko
+  Readmes for each project
+
+Handle page edit comments
+  BARKS-RESTORE:
+  BARKS-EDIT:
+  BARKS-ADDITION:
+
+Mcomix installer
+Mcomix jpg/svg switch
+
+Restore flow
+------------
+
+    Fantagraphics originals
+    Minor fixes (before or after upscayl?)
+    Convert all Fantagraphics to 4x Upscayls (approx 25 x 7GB = 175GB)
+    Using 4x Upscayls:
+        Remove jpeg artifacts
+        Remove colors
+        Smooth removed colors black ink
+        Generate svg
+        Inpaint images with removed colors black ink removed
+        Overlay inpainted image with svg black ink
+        Resize to target restored size
+        Save resized svg or just use svg as B/W option
+
+        Maybe:
+            Add jpg comments to saved files (upscayl, restored and svg)
+            Layer color (switch in mcomix) or segment color
