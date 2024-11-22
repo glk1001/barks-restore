@@ -16,16 +16,19 @@ def setup_logging(log_level) -> None:
 
 
 if __name__ == "__main__":
+    setup_logging(logging.INFO)
+
     SCALE = 4
     image_file = Path(sys.argv[1])
     upscale_file = Path(sys.argv[2])
+    out_dir = sys.argv[3]
 
-    out_dir = os.path.dirname(upscale_file)
+    if not os.path.isdir(out_dir):
+        print(f'ERROR: Can\'t find output directory: "{out_dir}".')
+        sys.exit(1)
+
     work_dir = os.path.join("/tmp/", "working")
-    os.makedirs(out_dir, exist_ok=True)
     os.makedirs(work_dir, exist_ok=True)
-
-    setup_logging(logging.INFO)
 
     input_image_dir = os.path.dirname(image_file)
     input_image_stem = Path(image_file).stem
