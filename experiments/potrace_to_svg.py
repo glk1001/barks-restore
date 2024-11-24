@@ -3,6 +3,7 @@ from PIL import Image
 from potrace import Bitmap, POTRACE_TURNPOLICY_MINORITY
 
 Image.MAX_IMAGE_PIXELS = None
+DECIMALS = 3
 
 
 def image_file_to_svg(in_file: str, out_file: str):
@@ -17,6 +18,31 @@ def image_file_to_svg(in_file: str, out_file: str):
         opttolerance=1.0,
     )
 
+    parts = []
+    for curve in plist:
+        fs = curve.start_point
+        parts.append(f"M{fs.x:.{DECIMALS}f},{fs.y:.{DECIMALS}f}")
+
+        for segment in curve.segments:
+            if segment.is_corner:
+                a = segment.c
+                b = segment.end_point
+                parts.append(
+                    f"L{a.x:.{DECIMALS}f},{a.y:.{DECIMALS}f}"
+                    f"L{b.x:.{DECIMALS}f},{b.y:.{DECIMALS}f}"
+                )
+            else:
+                a = segment.c1
+                b = segment.c2
+                c = segment.end_point
+                parts.append(
+                    f"C{a.x:.{DECIMALS}f},{a.y:.{DECIMALS}f}"
+                    f" {b.x:.{DECIMALS}f},{b.y:.{DECIMALS}f}"
+                    f" {c.x:.{DECIMALS}f},{c.y:.{DECIMALS}f}"
+                )
+
+        parts.append("z")
+
     with open(out_file, "w") as fp:
         xmlns = "http://www.w3.org/2000/svg"
         xmlns_xlink = "http://www.w3.org/1999/xlink"
@@ -26,24 +52,9 @@ def image_file_to_svg(in_file: str, out_file: str):
             f' width="{image.width}" height="{image.height}"'
             f' viewBox="0 0 {image.width} {image.height}">'
         )
-
-        parts = []
-        for curve in plist:
-            fs = curve.start_point
-            parts.append(f"M{fs.x},{fs.y}")
-            for segment in curve.segments:
-                if segment.is_corner:
-                    a = segment.c
-                    b = segment.end_point
-                    parts.append(f"L{a.x},{a.y}L{b.x},{b.y}")
-                else:
-                    a = segment.c1
-                    b = segment.c2
-                    c = segment.end_point
-                    parts.append(f"C{a.x},{a.y} {b.x},{b.y} {c.x},{c.y}")
-            parts.append("z")
-
-        fp.write(f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>')
+        fp.write(
+            f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>'
+        )
         fp.write("</svg>")
 
 
