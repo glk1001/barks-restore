@@ -63,14 +63,10 @@ def inpaint_image_file(
     g = np.where(remove_mask == 255, 0, g)
     r = np.where(remove_mask == 255, 255, r)
     out_image = cv.merge([b, g, r])
-    in_file_black_removed = os.path.join(
-        work_dir, f"{in_file_stem}-input-black-removed.png"
-    )
+    in_file_black_removed = os.path.join(work_dir, f"{in_file_stem}-input-black-removed.png")
     write_cv_image_file(in_file_black_removed, out_image)
 
-    inpaint_black_removed_file = os.path.join(
-        work_dir, f"{in_file_stem}-inpaint-black-removed.png"
-    )
+    inpaint_black_removed_file = os.path.join(work_dir, f"{in_file_stem}-inpaint-black-removed.png")
     inpaint_cmd = (
         f'"{in_file_black_removed}"'
         f' -fx_inpaint_matchpatch "1","5","26","5","1","255","0","0","255","1","0"'

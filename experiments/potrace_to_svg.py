@@ -52,9 +52,7 @@ def image_file_to_svg(in_file: str, out_file: str):
             f' width="{image.width}" height="{image.height}"'
             f' viewBox="0 0 {image.width} {image.height}">'
         )
-        fp.write(
-            f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>'
-        )
+        fp.write(f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>')
         fp.write("</svg>")
 
 

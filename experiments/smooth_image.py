@@ -10,22 +10,24 @@ def smooth_image_file(in_file: str, out_file: str):
     dl = 0.8
     da = 30
     precision = 2
-    interpolation = 0 # nearest
+    interpolation = 0  # nearest
     fast_approx = 1
     repeat = 2
     channels = 0
-    smooth_params = (f'{amplitude},'
-                     f'{sharpness},'
-                     f'{anisotropy},'
-                     f'{alpha},'
-                     f'{sigma},'
-                     f'{dl},'
-                     f'{da},'
-                     f'{precision},'
-                     f'{interpolation},'
-                     f'{fast_approx},'
-                     f'{repeat},'
-                     f'{channels}')
+    smooth_params = (
+        f"{amplitude},"
+        f"{sharpness},"
+        f"{anisotropy},"
+        f"{alpha},"
+        f"{sigma},"
+        f"{dl},"
+        f"{da},"
+        f"{precision},"
+        f"{interpolation},"
+        f"{fast_approx},"
+        f"{repeat},"
+        f"{channels}"
+    )
 
     # print(smooth_params)
     gmic.run(

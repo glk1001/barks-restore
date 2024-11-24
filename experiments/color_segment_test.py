@@ -76,9 +76,7 @@ def get_kmeans_clusters(
 
     bgr_centers = np.uint8(bgr_centers)
 
-    logging.info(
-        f"\nTime taken to get kmeans for image:" f" {int(time.time() - start)}s."
-    )
+    logging.info(f"\nTime taken to get kmeans for image:" f" {int(time.time() - start)}s.")
 
     return color_labels, bgr_centers
 
@@ -88,9 +86,9 @@ def get_kmeans_clusters(
 
 
 def colors_are_close(color1: LabColor, color2: LabColor) -> bool:
-    # cutoff = 5.0
     cutoff = 3.0
     return delta_e_cie2000(color1, color2) < cutoff
+
     # return (
     #     sq(color1[0] - color2[0])
     #     + sq(color1[1] - color2[1])
@@ -135,9 +133,7 @@ def optimize_labels(
                     label_bgr_color,
                     label_lab_color,
                 )
-                new_color_labels = np.where(
-                    new_color_labels == label, index, new_color_labels
-                )
+                new_color_labels = np.where(new_color_labels == label, index, new_color_labels)
                 centers_to_remove.append(label)
 
         new_label_colors_and_counts_dict[index] = label_colors_and_counts_dict[index]
@@ -201,9 +197,7 @@ def generate_svg(
     logging.info(f'Generating svg file "{svg_file}"...')
     image_file_to_svg(png_file, str(svg_file))
 
-    logging.info(
-        f'\nTime taken to generate "{svg_file}":' f" {int(time.time() - start)}s."
-    )
+    logging.info(f'\nTime taken to generate "{svg_file}":' f" {int(time.time() - start)}s.")
 
 
 def get_layered_svg_file(
@@ -290,9 +284,7 @@ def save_as_json(label_colors_and_counts_dict: LabelDict, json_file: Path) -> No
             return obj.lab_l, obj.lab_a, obj.lab_b
         return obj
 
-    json_object = json.dumps(
-        label_colors_and_counts_dict, indent=4, default=json_serialize
-    )
+    json_object = json.dumps(label_colors_and_counts_dict, indent=4, default=json_serialize)
 
     with open(json_file, "w") as f:
         f.write(json_object)
@@ -320,9 +312,7 @@ if __name__ == "__main__":
     out_dir = os.path.dirname(svg_out_file)
 
     label_dict = get_label_colors_and_counts(labels, centers)
-    label_json_file = Path(
-        os.path.join(out_dir, f"{svg_out_file.stem}-unoptimized.json")
-    )
+    label_json_file = Path(os.path.join(out_dir, f"{svg_out_file.stem}-unoptimized.json"))
     save_as_json(label_dict, label_json_file)
     print(centers)
 

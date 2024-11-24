@@ -46,7 +46,7 @@ os.makedirs(WORK_DIR, exist_ok=True)
 setup_logging(logging.INFO)
 
 FANTA_DIR = "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 2 - Donald Duck - Frozen Gold (Salem-Empire)/images"
-#FANTA_DIR = "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 7 - Donald Duck - Lost in the Andes (Digital-Empire)/images"
+# FANTA_DIR = "/home/greg/Books/Carl Barks/Fantagraphics/Carl Barks Vol. 7 - Donald Duck - Lost in the Andes (Digital-Empire)/images"
 
 test_image_files = [
     # Path("/home/greg/Prj/github/restore-barks/experiments/test-image-1.jpg"),
@@ -146,8 +146,10 @@ for image_file in test_image_files:
     upscale_file = get_upscale_filename(OUT_DIR, image_file, SCALE)
     do_upscale(image_file, upscale_file)
 
-logging.info(f'\nTime taken to upscale all {len(test_image_files)} files":'
-             f' {int(time.time() - start_upscale)}s.')
+logging.info(
+    f'\nTime taken to upscale all {len(test_image_files)} files":'
+    f" {int(time.time() - start_upscale)}s."
+)
 
 
 start_restore = time.time()
@@ -203,7 +205,10 @@ with concurrent.futures.ProcessPoolExecutor(part4_max_workers) as executor:
         executor.submit(run_restore_part4, process)
 
 
-logging.info(f'\nTime taken to restore all {len(restore_processes)} files":'
-             f''f' {int(time.time() - start_restore)}s.')
+logging.info(
+    f'\nTime taken to restore all {len(restore_processes)} files":'
+    f""
+    f" {int(time.time() - start_restore)}s."
+)
 
 check_for_errors(restore_processes)
