@@ -16,6 +16,15 @@ from colormath.color_objects import sRGBColor, LabColor
 
 from potrace_to_svg import image_file_to_svg
 
+
+# Patch for 'colormath' package not being up to date with numpy.
+def patch_asscalar(a):
+    return a.item()
+
+
+setattr(np, "asscalar", patch_asscalar)
+
+
 BgrColor = Tuple[int, int, int]
 LabelDict = Dict[int, Tuple[int, BgrColor, LabColor]]
 
