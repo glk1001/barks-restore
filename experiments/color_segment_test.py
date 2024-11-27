@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Tuple, Dict
 
 import cv2 as cv
+import gmic
 import numpy as np
 from colormath.color_conversions import convert_color
 from colormath.color_diff import delta_e_cie2000
@@ -48,10 +49,10 @@ def change_color(path_node: ET.Element, bgr_color: BgrColor) -> None:
 
 
 def get_svg_files(
-    dir_name: str, file_stem: str, label_colors_and_counts_dict: LabelDict
+    dir_name: str, file_stem: str, label_colors_and_counts: LabelDict
 ) -> Dict[int, Path]:
     file_list = {}
-    for index in label_colors_and_counts_dict:
+    for index in label_colors_and_counts:
         svg_file = Path(os.path.join(dir_name, f"{file_stem}-{index:02}.svg"))
         file_list[index] = svg_file
 
@@ -98,49 +99,51 @@ def colors_are_close(color1: LabColor, color2: LabColor) -> bool:
 
 
 def optimize_labels(
-    label_colors_and_counts_dict: LabelDict,
+    label_colors_and_counts: LabelDict,
     color_labels: cv.typing.MatLike,
     bgr_centers: cv.typing.MatLike,
 ) -> Tuple[LabelDict, cv.typing.MatLike, cv.typing.MatLike]:
-    new_label_colors_and_counts_dict = {}
+    new_label_colors_and_counts = {}
     new_color_labels = color_labels
 
     centers_to_remove = []
-    for index in label_colors_and_counts_dict:
-        index_count = label_colors_and_counts_dict[index][0]
+    for index in label_colors_and_counts:
+        index_count = label_colors_and_counts[index][0]
         if index_count == 0:
             continue
 
-        index_bgr_color = label_colors_and_counts_dict[index][1]
-        index_lab_color = label_colors_and_counts_dict[index][2]
-        for label in label_colors_and_counts_dict:
-            if index == label:
+        index_bgr_color = label_colors_and_counts[index][1]
+        index_lab_color = label_colors_and_counts[index][2]
+        for other_index in label_colors_and_counts:
+            if index == other_index:
                 continue
-            label_count = label_colors_and_counts_dict[label][0]
-            if label_count == 0:
+            other_index_count = label_colors_and_counts[other_index][0]
+            if other_index_count == 0:
                 continue
-            label_bgr_color = label_colors_and_counts_dict[label][1]
-            label_lab_color = label_colors_and_counts_dict[label][2]
-            if colors_are_close(index_lab_color, label_lab_color):
-                index_count = label_colors_and_counts_dict[index][0]
-                label_colors_and_counts_dict[index] = (
-                    index_count + label_count,
+            other_index_bgr_color = label_colors_and_counts[other_index][1]
+            other_index_lab_color = label_colors_and_counts[other_index][2]
+            if colors_are_close(index_lab_color, other_index_lab_color):
+                index_count = label_colors_and_counts[index][0]
+                label_colors_and_counts[index] = (
+                    index_count + other_index_count,
                     index_bgr_color,
                     index_lab_color,
                 )
-                label_colors_and_counts_dict[label] = (
+                label_colors_and_counts[other_index] = (
                     0,
-                    label_bgr_color,
-                    label_lab_color,
+                    other_index_bgr_color,
+                    other_index_lab_color,
                 )
-                new_color_labels = np.where(new_color_labels == label, index, new_color_labels)
-                centers_to_remove.append(label)
+                new_color_labels = np.where(
+                    new_color_labels == other_index, index, new_color_labels
+                )
+                centers_to_remove.append(other_index)
 
-        new_label_colors_and_counts_dict[index] = label_colors_and_counts_dict[index]
+        new_label_colors_and_counts[index] = label_colors_and_counts[index]
 
     new_bgr_centers = np.delete(bgr_centers, centers_to_remove, 0)
 
-    return new_label_colors_and_counts_dict, new_color_labels, new_bgr_centers
+    return new_label_colors_and_counts, new_color_labels, new_bgr_centers
 
 
 def generate_svg_files(
@@ -154,7 +157,7 @@ def generate_svg_files(
     bw_centers = np.uint8(bw_centers)
 
     # kernel = np.ones((3, 3), np.uint8)
-    with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor(2) as executor:
         for index in svg_file_list:
             executor.submit(
                 generate_svg,
@@ -185,23 +188,39 @@ def generate_svg(
     # print(len(np.unique(res, axis=0)), 'unique RGB values out of', Z.shape[0], 'pixels')
 
     single_color_image = single_color_image.reshape(image_shape)
-    # single_color_image = cv.erode(single_color_image, kernel, iterations=1)
     kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5, 5))
     single_color_image = cv.morphologyEx(single_color_image, cv.MORPH_OPEN, kernel)
-    #    kernel = np.ones((3, 3), np.uint8)
-    # kernel = cv.getStructuringElement(cv.MORPH_CROSS, (2, 2))
-    # single_color_image = cv.erode(single_color_image, kernel, iterations=1)
-    png_file = str(Path(svg_file).with_suffix(".png"))
-    cv.imwrite(png_file, single_color_image)
+    png_file = Path(svg_file).with_suffix(".png")
+    cv.imwrite(str(png_file), single_color_image)
+
+    blur_image_file(png_file, png_file)
 
     logging.info(f'Generating svg file "{svg_file}"...')
-    image_file_to_svg(png_file, str(svg_file))
+    image_file_to_svg(str(png_file), str(svg_file))
 
     logging.info(f'\nTime taken to generate "{svg_file}":' f" {int(time.time() - start)}s.")
 
 
+def blur_image_file(in_file: Path, out_file: Path) -> None:
+    blur_std_dev = 5  # nice smoothness
+    blur_boundary_policy = 0  # 0 = Dirichlet (off-image pixels black); 1 = Neumann (off = edge)
+    blur_kernel_type = 1  # 0 = quasi-Guassian; 1 = true Guassian
+    blur_params = f"{blur_std_dev},{blur_boundary_policy},{blur_kernel_type}"
+
+    threshold_percent = 50  # keeps color within black lines
+    threshold_softness = 1  # 1 = 'soft' - also nice smoothness
+    threshold_params = f"{threshold_percent}%,{threshold_softness}"
+
+    gmic.run(
+        f'"{in_file}"'
+        f" -blur[-1] {blur_params}"
+        f" -threshold[-1] {threshold_params} normalize[-1] 0,255"
+        f' -output[-1] "{out_file}"'
+    )
+
+
 def get_layered_svg_file(
-    label_colors_and_counts_dict: LabelDict,
+    label_colors_and_counts: LabelDict,
     svg_file_list: Dict[int, Path],
     black_ink_svg: Path,
     out_svg: Path,
@@ -209,9 +228,9 @@ def get_layered_svg_file(
     start = time.time()
 
     base_image = None
-    for index in label_colors_and_counts_dict:
+    for index in label_colors_and_counts:
         image_part = ET.parse(svg_file_list[index]).getroot()
-        bgr_color = label_colors_and_counts_dict[index][1]
+        bgr_color = label_colors_and_counts[index][1]
         change_color(image_part, bgr_color)
         if base_image is None:
             base_image = image_part
@@ -236,14 +255,12 @@ def get_label_colors_and_counts(
     color_labels: cv.typing.MatLike, bgr_centers: cv.typing.MatLike
 ) -> LabelDict:
     unique, counts = np.unique(color_labels, return_counts=True)
-    label_count_dict = dict(zip(unique, counts))
+    label_counts = dict(zip(unique, counts))
     # Sort descending so color with higher count is layered first.
-    label_count_dict = dict(
-        sorted(label_count_dict.items(), key=lambda item: item[1], reverse=True)
-    )
+    label_counts = dict(sorted(label_counts.items(), key=lambda item: item[1], reverse=True))
 
-    label_colors_and_counts_dict = {}
-    for label in label_count_dict:
+    label_colors_and_counts = {}
+    for label in label_counts:
         bgr_color = (
             int(bgr_centers[label][0]),
             int(bgr_centers[label][1]),
@@ -253,13 +270,13 @@ def get_label_colors_and_counts(
             sRGBColor(bgr_color[2] / 255.0, bgr_color[1] / 255.0, bgr_color[0] / 255.0),
             LabColor,
         )
-        label_colors_and_counts_dict[int(label)] = (
-            int(label_count_dict[label]),
+        label_colors_and_counts[int(label)] = (
+            int(label_counts[label]),
             bgr_color,
             lab_color,
         )
 
-    return label_colors_and_counts_dict
+    return label_colors_and_counts
 
 
 def get_black_ink_image(
@@ -278,13 +295,13 @@ def get_black_ink_image(
     return cv.merge([b, g, r])
 
 
-def save_as_json(label_colors_and_counts_dict: LabelDict, json_file: Path) -> None:
+def save_as_json(label_colors_and_counts: LabelDict, json_file: Path) -> None:
     def json_serialize(obj):
         if isinstance(obj, LabColor):
             return obj.lab_l, obj.lab_a, obj.lab_b
         return obj
 
-    json_object = json.dumps(label_colors_and_counts_dict, indent=4, default=json_serialize)
+    json_object = json.dumps(label_colors_and_counts, indent=4, default=json_serialize)
 
     with open(json_file, "w") as f:
         f.write(json_object)
