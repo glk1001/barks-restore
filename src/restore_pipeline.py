@@ -12,26 +12,29 @@ from potrace_to_svg import image_file_to_svg, svg_file_to_png
 from remove_alias_artifacts import get_median_filter
 from remove_colors import remove_colors_from_image
 from smooth_image import smooth_image_file
-from upscale_image import upscale_image_file
 
 
 class RestorePipeline:
     def __init__(
-        self, work_dir: str, out_dir: str, srce_file: Path, upscale_srce_file: Path, scale: int
+        self, work_dir: str, srce_file: Path, upscale_srce_file: Path, scale: int, dest_file: Path
     ):
         self.work_dir = work_dir
-        self.out_dir = out_dir
+        self.out_dir = os.path.dirname(dest_file)
         self.srce_file = srce_file
         self.upscale_srce_file = upscale_srce_file
         self.scale = scale
+        self.restored_file = str(dest_file)
+
         self.errors_occurred = False
 
         if not os.path.isdir(self.work_dir):
-            raise Exception(f'Directory not found: "{self.work_dir}".')
+            raise Exception(f'Work directory not found: "{self.work_dir}".')
         if not os.path.isdir(self.out_dir):
-            raise Exception(f'Directory not found: "{self.out_dir}".')
+            raise Exception(f'Restored directory not found: "{self.out_dir}".')
+        if not os.path.exists(self.srce_file):
+            raise Exception(f'Srce file not found: "{self.srce_file}".')
         if not os.path.exists(self.upscale_srce_file):
-            raise Exception(f'File not found: "{self.upscale_srce_file}".')
+            raise Exception(f'Upscayl file not found: "{self.upscale_srce_file}".')
 
         self.upscale_image_stem = upscale_srce_file.stem
         self.removed_artifacts_file = os.path.join(
@@ -43,12 +46,9 @@ class RestorePipeline:
         self.smoothed_removed_colors_file = os.path.join(
             work_dir, f"{self.upscale_image_stem}-color-removed-smoothed.png"
         )
-        self.svg_file = os.path.join(out_dir, f"{self.upscale_image_stem}.svg")
+        self.svg_file = os.path.join(self.out_dir, f"{self.upscale_image_stem}.svg")
         self.png_of_svg_file = self.svg_file + ".png"
         self.inpainted_file = os.path.join(work_dir, f"{self.upscale_image_stem}-inpainted.png")
-        self.restored_file = os.path.join(
-            out_dir, f"{self.upscale_image_stem}-restored-orig-size.png"
-        )
 
     def do_part1(self):
         self.do_remove_jpg_artifacts()
@@ -137,7 +137,7 @@ class RestorePipeline:
     def do_inpaint(self):
         try:
             start = time.time()
-            logging.info(f'\nInpainting upscaled file to "{self.inpainted_file}"...')
+            logging.info(f'\nInpainting upscayled file to "{self.inpainted_file}"...')
 
             inpaint_image_file(
                 self.work_dir,
@@ -172,27 +172,6 @@ class RestorePipeline:
         except Exception as e:
             self.errors_occurred = True
             logging.exception(e)
-
-
-def get_upscale_filename(out_dir: str, img_file: Path, scale: int) -> Path:
-    upscale_image_stem = f"{img_file.stem}-upscayl-x{scale}"
-    return Path(os.path.join(out_dir, f"{upscale_image_stem}.png"))
-
-
-def do_upscale(srce_file: Path, upscale_out_file: Path):
-    start = time.time()
-    logging.info(f'\nProcessing "{srce_file}"...')
-
-    logging.info(f'\nUpscaling to "{upscale_out_file}"...')
-    upscale_image_file(str(srce_file), str(upscale_out_file), SCALE)
-
-    if not os.path.exists(upscale_out_file):
-        raise Exception(f'File not found: "{upscale_out_file}".')
-
-    logging.info(
-        f'Time taken to upscale "{os.path.basename(upscale_out_file)}":'
-        f" {int(time.time() - start)}s."
-    )
 
 
 def check_file_exists(proc: RestorePipeline, file: str):

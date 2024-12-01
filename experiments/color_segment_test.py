@@ -15,7 +15,7 @@ from colormath.color_conversions import convert_color
 from colormath.color_diff import delta_e_cie2000
 from colormath.color_objects import sRGBColor, LabColor
 
-from potrace_to_svg import image_file_to_svg
+from src.potrace_to_svg import image_file_to_svg
 
 
 # Patch for 'colormath' package not being up to date with numpy.

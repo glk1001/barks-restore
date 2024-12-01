@@ -5,7 +5,7 @@ import sys
 
 import cv2 as cv
 
-from remove_alias_artifacts import get_median_filter
+from src.remove_alias_artifacts import get_median_filter
 
 # import gmic
 

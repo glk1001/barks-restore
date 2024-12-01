@@ -4,7 +4,7 @@ import sys
 import time
 from pathlib import Path
 
-from experiments.restore_pipeline import RestorePipeline, check_for_errors
+from src.restore_pipeline import RestorePipeline, check_for_errors
 
 
 def setup_logging(log_level) -> None:
@@ -21,8 +21,9 @@ if __name__ == "__main__":
     SCALE = 4
     image_file = Path(sys.argv[1])
     upscale_file = Path(sys.argv[2])
-    out_dir = sys.argv[3]
+    out_file = Path(sys.argv[3])
 
+    out_dir = os.path.dirname(out_file)
     if not os.path.isdir(out_dir):
         print(f'ERROR: Can\'t find output directory: "{out_dir}".')
         sys.exit(1)
@@ -35,7 +36,7 @@ if __name__ == "__main__":
 
     start_restore = time.time()
 
-    restore_process = RestorePipeline(work_dir, out_dir, image_file, upscale_file, SCALE)
+    restore_process = RestorePipeline(work_dir, image_file, upscale_file, SCALE, out_file)
     restore_process.do_part1()
     restore_process.do_part2_memory_hungry()
     restore_process.do_part3()

@@ -2,7 +2,7 @@ import os
 import sys
 from pathlib import Path
 
-from experiments.upscale_image import upscale_image_file
+from src.upscale_image import upscale_image_file
 
 if __name__ == "__main__":
     scale = 8

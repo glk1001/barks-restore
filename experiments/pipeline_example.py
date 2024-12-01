@@ -3,10 +3,9 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import List
 
-from restore_pipeline import RestorePipeline, check_for_errors
-from upscale_image import upscale_image_file
+from src.restore_pipeline import RestorePipeline, check_for_errors
+from src.upscale_image import upscale_image_file
 
 
 def setup_logging(log_level) -> None:

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import cv2 as cv
 
-from remove_colors import remove_colors_from_image
+from src.remove_colors import remove_colors_from_image
 
 # posterized_colors = get_posterized_colors()
 # for color in posterized_colors:

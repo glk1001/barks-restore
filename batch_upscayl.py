@@ -1,5 +1,8 @@
 import argparse
+import logging
 import os
+import time
+from typing import List
 
 from intspan import intspan
 
@@ -8,9 +11,15 @@ from barks_fantagraphics.comics_database import (
     PageType,
     get_default_comics_database_dir,
 )
-from barks_fantagraphics.comics_info import JPG_FILE_EXT, PNG_FILE_EXT
-from barks_fantagraphics.comics_utils import get_story_files_of_page_type
-from experiments.upscale_image import upscale_image_file
+
+
+def setup_logging(log_level) -> None:
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s: %(message)s",
+        datefmt="%m/%d/%Y %H:%M:%S",
+        level=log_level,
+    )
+
 
 RESTORABLE_PAGE_TYPES = [
     PageType.BODY,
@@ -47,16 +56,31 @@ def get_args():
     return args
 
 
-def upscale(in_file: str, out_file: str) -> None:
-    if not os.path.isfile(in_file):
-        raise Exception(f'Could not find srce file: "{in_file}".')
-    if os.path.isfile(out_file):
-        print(f'Dest file exists - skipping: "{out_file}".')
-        return
+def upscayl(title_list: List[str]) -> None:
+    start = time.time()
 
-    print(f'Upscayling srce file "{in_file}" to dest "{out_file}".')
-    upscale_image_file(in_file, out_file, SCALE)
+    for title in title_list:
+        logging.info(f'Upscayling story "{title}"...')
 
+        comic = comics_database.get_comic_book(title)
+
+        srce_files = comic.get_srce_with_fixes_story_files(RESTORABLE_PAGE_TYPES)
+        upscayl_files = comic.get_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
+
+        for srce_file, upscayl_file in zip(srce_files, upscayl_files):
+            if not os.path.isfile(srce_file[0]):
+                raise Exception(f'Could not find srce file: "{srce_file}".')
+            if os.path.isfile(upscayl_file):
+                logging.warning(f'Dest upscayl file exists - skipping: "{upscayl_file}".')
+                continue
+
+            print(f'Upscayling srce file "{srce_file}" to dest upscayl "{upscayl_file}".')
+            # upscale_image_file(srce_file[0], upscayl_file, SCALE)
+
+    logging.info(f'\nTime taken to upscayl all files": {int(time.time() - start)}s.')
+
+
+setup_logging(logging.INFO)
 
 cmd_args = get_args()
 comics_database = ComicsDatabase(cmd_args.comics_database_dir)
@@ -64,22 +88,4 @@ vol_list = list(intspan(cmd_args.volume))
 
 titles = comics_database.get_all_story_titles_in_fantagraphics_volume(vol_list)
 
-srce_file_list = []
-dest_file_list = []
-for title in titles:
-    comic_book = comics_database.get_comic_book(title)
-
-    srce_dir = comic_book.get_srce_image_dir()
-    srce_files = get_story_files_of_page_type(
-        srce_dir, comic_book, JPG_FILE_EXT, RESTORABLE_PAGE_TYPES
-    )
-    srce_file_list.extend(srce_files)
-
-    dest_dir = comic_book.get_srce_upscayled_image_dir()
-    dest_files = get_story_files_of_page_type(
-        dest_dir, comic_book, PNG_FILE_EXT, RESTORABLE_PAGE_TYPES
-    )
-    dest_file_list.extend(dest_files)
-
-for srce_file, dest_file in zip(srce_file_list, dest_file_list):
-    upscale(srce_file, dest_file)
+upscayl(titles)

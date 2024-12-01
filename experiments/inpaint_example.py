@@ -1,6 +1,6 @@
 import sys
 
-from inpaint import inpaint_image_file
+from src.inpaint import inpaint_image_file
 
 if __name__ == "__main__":
     input_image_file = sys.argv[1]
