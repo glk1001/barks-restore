@@ -1,11 +1,13 @@
 import argparse
 import logging
 import os
+import sys
 import time
 from typing import List
 
 from intspan import intspan
 
+from barks_fantagraphics.comic_book import get_barks_path
 from barks_fantagraphics.comics_database import (
     ComicsDatabase,
     PageType,
@@ -29,6 +31,7 @@ RESTORABLE_PAGE_TYPES = [
 
 COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
 VOLUME_ARG = "--volume"
+TITLE_ARG = "--title"
 
 SCALE = 4
 
@@ -48,7 +51,13 @@ def get_args():
         VOLUME_ARG,
         action="store",
         type=str,
-        required=True,
+        required=False,
+    )
+    parser.add_argument(
+        TITLE_ARG,
+        action="store",
+        type=str,
+        required=False,
     )
 
     args = parser.parse_args()
@@ -69,12 +78,14 @@ def upscayl(title_list: List[str]) -> None:
 
         for srce_file, upscayl_file in zip(srce_files, upscayl_files):
             if not os.path.isfile(srce_file[0]):
-                raise Exception(f'Could not find srce file: "{srce_file}".')
+                raise Exception(f'Could not find srce file: "{srce_file[0]}".')
             if os.path.isfile(upscayl_file):
-                logging.warning(f'Dest upscayl file exists - skipping: "{upscayl_file}".')
+                logging.warning(
+                    f'Dest upscayl file exists - skipping: "{get_barks_path(upscayl_file)}".'
+                )
                 continue
 
-            print(f'Upscayling srce file "{srce_file}" to dest upscayl "{upscayl_file}".')
+            print(f'Upscayling srce file "{srce_file[0]}" to dest upscayl "{upscayl_file}".')
             # upscale_image_file(srce_file[0], upscayl_file, SCALE)
 
     logging.info(f'\nTime taken to upscayl all files": {int(time.time() - start)}s.')
@@ -84,8 +95,18 @@ setup_logging(logging.INFO)
 
 cmd_args = get_args()
 comics_database = ComicsDatabase(cmd_args.comics_database_dir)
-vol_list = list(intspan(cmd_args.volume))
 
-titles = comics_database.get_all_story_titles_in_fantagraphics_volume(vol_list)
+if cmd_args.volume and cmd_args.title:
+    print(f"ERROR: You can only have one of '{VOLUME_ARG}' or '{TITLE_ARG}'.")
+    sys.exit(1)
+
+if cmd_args.title:
+    titles = [cmd_args.title]
+elif cmd_args.volume:
+    vol_list = list(intspan(cmd_args.volume))
+    titles = comics_database.get_all_story_titles_in_fantagraphics_volume(vol_list)
+else:
+    print(f"ERROR: You must specify one of '{VOLUME_ARG}' or '{TITLE_ARG}'.")
+    sys.exit(1)
 
 upscayl(titles)

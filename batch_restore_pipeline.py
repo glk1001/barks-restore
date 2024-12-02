@@ -1,11 +1,13 @@
 import argparse
 import logging
 import os
+import sys
 import time
 from typing import List
 
 from intspan import intspan
 
+from barks_fantagraphics.comic_book import get_barks_path
 from barks_fantagraphics.comics_database import (
     ComicsDatabase,
     PageType,
@@ -30,6 +32,7 @@ RESTORABLE_PAGE_TYPES = [
 
 COMICS_DATABASE_DIR_ARG = "--comics-database-dir"
 VOLUME_ARG = "--volume"
+TITLE_ARG = "--title"
 
 SCALE = 4
 
@@ -49,7 +52,13 @@ def get_args():
         VOLUME_ARG,
         action="store",
         type=str,
-        required=True,
+        required=False,
+    )
+    parser.add_argument(
+        TITLE_ARG,
+        action="store",
+        type=str,
+        required=False,
     )
 
     args = parser.parse_args()
@@ -64,19 +73,19 @@ def restore(title_list: List[str]) -> None:
     for title in title_list:
         logging.info(f'Processing story "{title}".')
 
-        comic_book = comics_database.get_comic_book(title)
+        comic = comics_database.get_comic_book(title)
 
-        srce_files = comic_book.get_final_srce_story_files(RESTORABLE_PAGE_TYPES)
-        upscayl_files = comic_book.get_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
-        dest_files = comic_book.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
+        srce_files = comic.get_final_srce_story_files(RESTORABLE_PAGE_TYPES)
+        upscayl_files = comic.get_final_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
+        dest_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
 
         for srce_file, upscayl_file, dest_file in zip(srce_files, upscayl_files, dest_files):
             if not os.path.isfile(srce_file[0]):
-                raise Exception(f'Could not find srce file: "{srce_file}".')
-            if not os.path.isfile(upscayl_file):
-                raise Exception(f'Could not find srce upscayl file: "{upscayl_file}".')
+                raise Exception(f'Could not find srce file: "{srce_file[0]}".')
+            if not os.path.isfile(upscayl_file[0]):
+                raise Exception(f'Could not find srce upscayl file: "{upscayl_file[0]}".')
             if os.path.isfile(dest_file):
-                logging.warning(f'Dest file exists - skipping: "{dest_file}".')
+                logging.warning(f'Dest file exists - skipping: "{get_barks_path(dest_file)}".')
                 continue
 
             print(f'Restoring srce file "{srce_file}", "{upscayl_file}" to dest "{dest_file}".')
@@ -103,8 +112,18 @@ setup_logging(logging.INFO)
 
 cmd_args = get_args()
 comics_database = ComicsDatabase(cmd_args.comics_database_dir)
-vol_list = list(intspan(cmd_args.volume))
 
-titles = comics_database.get_all_story_titles_in_fantagraphics_volume(vol_list)
+if cmd_args.volume and cmd_args.title:
+    print(f"ERROR: You can only have one of '{VOLUME_ARG}' or '{TITLE_ARG}'.")
+    sys.exit(1)
+
+if cmd_args.title:
+    titles = [cmd_args.title]
+elif cmd_args.volume:
+    vol_list = list(intspan(cmd_args.volume))
+    titles = comics_database.get_all_story_titles_in_fantagraphics_volume(vol_list)
+else:
+    print(f"ERROR: You must specify one of '{VOLUME_ARG}' or '{TITLE_ARG}'.")
+    sys.exit(1)
 
 restore(titles)
