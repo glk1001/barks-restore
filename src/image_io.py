@@ -79,6 +79,19 @@ def add_png_metadata(png_file: str, metadata: Dict[str, str]):
     pil_image.save(png_file, pnginfo=png_metadata)
 
 
+def get_png_metadata(png_file: str) -> Dict[str, str]:
+    pil_image = Image.open(png_file, "r")
+
+    png_metadata = pil_image.info
+
+    metadata = dict()
+    for key in png_metadata:
+        if key.startswith(METADATA_PROPERTY_GROUP + ":"):
+            metadata[key] = png_metadata[key]
+
+    return metadata
+
+
 def _write_cv_png_file(file: str, image: cv.typing.MatLike, metadata: Dict[str, str]):
     color_converted = cv.cvtColor(image, cv.COLOR_BGR2RGB)
     pil_image = Image.fromarray(color_converted)

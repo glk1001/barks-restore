@@ -6,8 +6,10 @@ from typing import List
 
 import cv2 as cv
 
+from barks_fantagraphics.comic_book import get_barks_path
 from image_io import resize_image_file, write_cv_image_file
 from inpaint import inpaint_image_file
+from overlay import overlay_inpainted_file_with_black_ink
 from potrace_to_svg import image_file_to_svg, svg_file_to_png
 from remove_alias_artifacts import get_median_filter
 from remove_colors import remove_colors_from_image
@@ -36,7 +38,8 @@ class RestorePipeline:
         if not os.path.exists(self.upscale_srce_file):
             raise Exception(f'Upscayl file not found: "{self.upscale_srce_file}".')
 
-        self.upscale_image_stem = upscale_srce_file.stem
+        self.upscale_image_stem = f"{upscale_srce_file.stem}-upscayled"
+
         self.removed_artifacts_file = os.path.join(
             work_dir, f"{self.upscale_image_stem}-median-filtered.png"
         )
@@ -46,9 +49,12 @@ class RestorePipeline:
         self.smoothed_removed_colors_file = os.path.join(
             work_dir, f"{self.upscale_image_stem}-color-removed-smoothed.png"
         )
-        self.svg_file = os.path.join(self.out_dir, f"{self.upscale_image_stem}.svg")
+        self.svg_file = str(Path(self.restored_file).with_suffix(".svg"))
         self.png_of_svg_file = self.svg_file + ".png"
         self.inpainted_file = os.path.join(work_dir, f"{self.upscale_image_stem}-inpainted.png")
+        self.restored_upscayl_file = os.path.join(
+            work_dir, f"{self.upscale_image_stem}-restored.png"
+        )
 
     def do_part1(self):
         self.do_remove_jpg_artifacts()
@@ -62,6 +68,7 @@ class RestorePipeline:
 
     def do_part4_memory_hungry(self):
         self.do_inpaint()
+        self.do_overlay_inpaint_with_black_ink()
         self.do_resize_restored_file()
 
     def do_remove_jpg_artifacts(self):
@@ -143,12 +150,31 @@ class RestorePipeline:
                 self.work_dir,
                 str(self.upscale_srce_file),
                 self.removed_colors_file,
-                self.png_of_svg_file,
                 self.inpainted_file,
             )
 
             logging.info(
                 f'Time taken to inpaint "{os.path.basename(self.inpainted_file)}":'
+                f" {int(time.time() - start)}s."
+            )
+        except Exception as e:
+            self.errors_occurred = True
+            logging.exception(e)
+
+    def do_overlay_inpaint_with_black_ink(self):
+        try:
+            start = time.time()
+            logging.info(
+                f'\nOverlaying inpainted file "{self.inpainted_file}"'
+                f' with black ink file "{self.png_of_svg_file}"...'
+            )
+
+            overlay_inpainted_file_with_black_ink(
+                self.inpainted_file, self.png_of_svg_file, self.restored_upscayl_file
+            )
+
+            logging.info(
+                f'Time taken to overlay inpainted file "{os.path.basename(self.inpainted_file)}":'
                 f" {int(time.time() - start)}s."
             )
         except Exception as e:
@@ -161,13 +187,13 @@ class RestorePipeline:
 
             # TODO: Save other params used in process.
             restored_file_metadata = {
-                "Source file": str(self.srce_file),
-                "Upscayl file": str(self.upscale_srce_file),
+                "Source file": f'"{get_barks_path(self.srce_file)}"',
+                "Upscayl file": f'"{get_barks_path(self.upscale_srce_file)}"',
                 "Upscayl scale": str(self.scale),
             }
 
             resize_image_file(
-                self.inpainted_file, self.scale, self.restored_file, restored_file_metadata
+                self.restored_upscayl_file, self.scale, self.restored_file, restored_file_metadata
             )
         except Exception as e:
             self.errors_occurred = True
@@ -188,6 +214,7 @@ def check_for_errors(restore_procs: List[RestorePipeline]):
         check_file_exists(proc, proc.svg_file)
         check_file_exists(proc, proc.png_of_svg_file)
         check_file_exists(proc, proc.inpainted_file)
+        check_file_exists(proc, proc.restored_upscayl_file)
         check_file_exists(proc, proc.restored_file)
 
         if proc.errors_occurred:

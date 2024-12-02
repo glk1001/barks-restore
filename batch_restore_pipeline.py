@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import time
+from pathlib import Path
 from typing import List
 
 from intspan import intspan
@@ -13,7 +14,7 @@ from barks_fantagraphics.comics_database import (
     PageType,
     get_default_comics_database_dir,
 )
-from src.restore_pipeline import check_for_errors
+from src.restore_pipeline import RestorePipeline, check_for_errors
 
 
 def setup_logging(log_level) -> None:
@@ -88,17 +89,19 @@ def restore(title_list: List[str]) -> None:
                 logging.warning(f'Dest file exists - skipping: "{get_barks_path(dest_file)}".')
                 continue
 
-            print(f'Restoring srce file "{srce_file}", "{upscayl_file}" to dest "{dest_file}".')
-            #
-            # restore_processes.append(
-            #     RestorePipeline(work_dir, Path(srce_file), Path(upscayl_file), SCALE, Path(dest_file))
-            # )
+            # print(f'Restoring srce file "{srce_file}", "{upscayl_file}" to dest "{dest_file}".')
 
-    # for process in restore_processes:
-    #     process.do_part1()
-    #     process.do_part2_memory_hungry()
-    #     process.do_part3()
-    #     process.do_part4_memory_hungry()
+            restore_processes.append(
+                RestorePipeline(
+                    work_dir, Path(srce_file[0]), Path(upscayl_file[0]), SCALE, Path(dest_file)
+                )
+            )
+
+    for process in restore_processes:
+        process.do_part1()
+        process.do_part2_memory_hungry()
+        process.do_part3()
+        process.do_part4_memory_hungry()
 
     logging.info(
         f'\nTime taken to restore all {len(restore_processes)} files": {int(time.time() - start)}s.'

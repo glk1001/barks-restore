@@ -12,22 +12,17 @@ def inpaint_image_file(
     work_dir: str,
     in_file: str,
     black_ink_mask_file: str,
-    black_ink_file: str,
     out_file: str,
 ):
     if not os.path.exists(in_file):
         raise Exception(f'File not found: "{in_file}".')
     if not os.path.exists(black_ink_mask_file):
         raise Exception(f'File not found: "{black_ink_mask_file}".')
-    if not os.path.exists(black_ink_file):
-        raise Exception(f'File not found: "{black_ink_file}".')
 
     input_image = cv.imread(in_file)
     assert input_image.shape[2] == 3
     black_ink_mask = cv.imread(black_ink_mask_file, cv.COLOR_BGR2GRAY)
     assert black_ink_mask.shape[2] == 3
-    black_ink = cv.imread(black_ink_file, -1)
-    assert black_ink.shape[2] == 4
 
     in_file_stem = Path(in_file).stem
 
@@ -75,10 +70,3 @@ def inpaint_image_file(
     gmic.run(inpaint_cmd)
     #    gmic.run(f'"{in_file_black_removed}" -fx_inpaint_pde "80","2","15","255","0","0","255","1" output "{inpaint_black_removed_file}"')
     # TOO LONG    gmic.run(f'"{in_file_black_removed}" -fx_inpaint_patch "7","16","0.1","1.2","0","0.05","10","1","255","0","0","255","0","0" output "{inpaint_black_removed_file}"')
-
-    overlay_cmd = (
-        f'"{inpaint_black_removed_file}" "{black_ink_file}"'
-        f" +channels[-1] 100% +image[0] [1],0%,0%,0,0,1,[2],255"
-        f' output[-1] "{out_file}"'
-    )
-    gmic.run(overlay_cmd)
