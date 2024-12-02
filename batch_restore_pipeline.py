@@ -100,7 +100,9 @@ def restore(title_list: List[str]) -> None:
     #     process.do_part3()
     #     process.do_part4_memory_hungry()
 
-    logging.info(f'\nTime taken to restore all files": {int(time.time() - start)}s.')
+    logging.info(
+        f'\nTime taken to restore all {len(restore_processes)} files": {int(time.time() - start)}s.'
+    )
 
     check_for_errors(restore_processes)
 

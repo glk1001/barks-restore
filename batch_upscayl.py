@@ -13,6 +13,7 @@ from barks_fantagraphics.comics_database import (
     PageType,
     get_default_comics_database_dir,
 )
+from src.upscale_image import upscale_image_file
 
 
 def setup_logging(log_level) -> None:
@@ -68,6 +69,7 @@ def get_args():
 def upscayl(title_list: List[str]) -> None:
     start = time.time()
 
+    num_upscayled_files = 0
     for title in title_list:
         logging.info(f'Upscayling story "{title}"...')
 
@@ -85,10 +87,14 @@ def upscayl(title_list: List[str]) -> None:
                 )
                 continue
 
-            print(f'Upscayling srce file "{srce_file[0]}" to dest upscayl "{upscayl_file}".')
-            # upscale_image_file(srce_file[0], upscayl_file, SCALE)
+            # print(f'Upscayling srce file "{srce_file[0]}" to dest upscayl "{upscayl_file}".')
+            upscale_image_file(srce_file[0], upscayl_file, SCALE)
 
-    logging.info(f'\nTime taken to upscayl all files": {int(time.time() - start)}s.')
+            num_upscayled_files += 1
+
+    logging.info(
+        f"\nTime taken to upscayl all {num_upscayled_files} files: {int(time.time() - start)}s."
+    )
 
 
 setup_logging(logging.INFO)
