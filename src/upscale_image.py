@@ -3,7 +3,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from barks_fantagraphics.comic_book import get_barks_path
+from barks_fantagraphics.comics_utils import get_clean_path
 from image_io import add_png_metadata
 
 UPSCAYL_BIN = os.path.join(str(Path.home()), ".local/share/upscayl/bin/upscayl-bin")
@@ -49,7 +49,7 @@ def upscale_image_file(in_file: str, out_file: str, scale: int = 2):
         raise Exception("Upscayl failed.")
 
     metadata = {
-        "Srce file": f'"{get_barks_path(in_file)}"',
+        "Srce file": f'"{get_clean_path(in_file)}"',
         "Scale": str(scale),
         "Upscayl model": UPSCAYL_MODEL,
     }

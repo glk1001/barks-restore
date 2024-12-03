@@ -1,6 +1,5 @@
 import os
 from collections import OrderedDict
-from pathlib import Path
 from typing import Tuple, Dict
 
 import cv2 as cv
@@ -67,20 +66,18 @@ def write_color_counts(filename: str, image: cv.typing.MatLike):
             f.write(f"{color}: {color_counts_descending[color]}\n")
 
 
-def remove_colors_from_image(work_dir: str, in_file: str, out_file: str):
-    out_file_stem = Path(out_file).stem
-
+def remove_colors_from_image(work_dir: str, work_file_stem: str, in_file: str, out_file: str):
     out_image = cv.imread(in_file)
 
     posterize_image(out_image)
     posterized_image_file = os.path.join(
-        work_dir, out_file_stem + "-posterized-pre-remove-colors.png"
+        work_dir, work_file_stem + "-posterized-pre-remove-colors.png"
     )
     write_cv_image_file(posterized_image_file, out_image)
 
     if DEBUG_WRITE_COLOR_COUNTS:
         posterized_counts_file = os.path.join(
-            work_dir, out_file_stem + "-posterized-color-counts-pre-remove-colors.txt"
+            work_dir, work_file_stem + "-posterized-color-counts-pre-remove-colors.txt"
         )
         write_color_counts(posterized_counts_file, out_image)
 
@@ -89,7 +86,7 @@ def remove_colors_from_image(work_dir: str, in_file: str, out_file: str):
 
     if DEBUG_WRITE_COLOR_COUNTS:
         remaining_color_counts_file = os.path.join(
-            work_dir, out_file_stem + "-remaining-color-counts-post-remove-colors.txt"
+            work_dir, work_file_stem + "-remaining-color-counts-post-remove-colors.txt"
         )
         write_color_counts(remaining_color_counts_file, out_image)
 

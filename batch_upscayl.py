@@ -7,12 +7,12 @@ from typing import List
 
 from intspan import intspan
 
-from barks_fantagraphics.comic_book import get_barks_path
 from barks_fantagraphics.comics_database import (
     ComicsDatabase,
     PageType,
     get_default_comics_database_dir,
 )
+from barks_fantagraphics.comics_utils import get_relpath
 from src.upscale_image import upscale_image_file
 
 
@@ -83,7 +83,7 @@ def upscayl(title_list: List[str]) -> None:
                 raise Exception(f'Could not find srce file: "{srce_file[0]}".')
             if os.path.isfile(upscayl_file):
                 logging.warning(
-                    f'Dest upscayl file exists - skipping: "{get_barks_path(upscayl_file)}".'
+                    f'Dest upscayl file exists - skipping: "{get_relpath(upscayl_file)}".'
                 )
                 continue
 

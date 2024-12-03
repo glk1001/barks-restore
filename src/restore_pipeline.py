@@ -6,7 +6,7 @@ from typing import List
 
 import cv2 as cv
 
-from barks_fantagraphics.comic_book import get_barks_path
+from barks_fantagraphics.comics_utils import get_clean_path
 from image_io import resize_image_file, write_cv_image_file
 from inpaint import inpaint_image_file
 from overlay import overlay_inpainted_file_with_black_ink
@@ -75,7 +75,7 @@ class RestorePipeline:
         try:
             start = time.time()
             logging.info(
-                f'\nGenerating jpeg artifacts removed file "{self.removed_artifacts_file}"...'
+                f'\nGenerating file with jpeg artifacts removed: "{self.removed_artifacts_file}"...'
             )
 
             upscale_image = cv.imread(str(self.upscale_srce_file))
@@ -97,7 +97,10 @@ class RestorePipeline:
             logging.info(f'\nGenerating color removed file "{self.removed_colors_file}"...')
 
             remove_colors_from_image(
-                self.work_dir, self.removed_artifacts_file, self.removed_colors_file
+                self.work_dir,
+                self.upscale_image_stem,
+                self.removed_artifacts_file,
+                self.removed_colors_file,
             )
 
             logging.info(
@@ -148,6 +151,7 @@ class RestorePipeline:
 
             inpaint_image_file(
                 self.work_dir,
+                self.upscale_image_stem,
                 str(self.upscale_srce_file),
                 self.removed_colors_file,
                 self.inpainted_file,
@@ -187,8 +191,8 @@ class RestorePipeline:
 
             # TODO: Save other params used in process.
             restored_file_metadata = {
-                "Source file": f'"{get_barks_path(self.srce_file)}"',
-                "Upscayl file": f'"{get_barks_path(self.upscale_srce_file)}"',
+                "Source file": f'"{get_clean_path(self.srce_file)}"',
+                "Upscayl file": f'"{get_clean_path(self.upscale_srce_file)}"',
                 "Upscayl scale": str(self.scale),
             }
 

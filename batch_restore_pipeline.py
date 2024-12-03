@@ -1,4 +1,5 @@
 import argparse
+import concurrent.futures
 import logging
 import os
 import sys
@@ -6,14 +7,15 @@ import time
 from pathlib import Path
 from typing import List
 
+import psutil
 from intspan import intspan
 
-from barks_fantagraphics.comic_book import get_barks_path
 from barks_fantagraphics.comics_database import (
     ComicsDatabase,
     PageType,
     get_default_comics_database_dir,
 )
+from barks_fantagraphics.comics_utils import get_relpath
 from src.restore_pipeline import RestorePipeline, check_for_errors
 
 
@@ -36,6 +38,7 @@ VOLUME_ARG = "--volume"
 TITLE_ARG = "--title"
 
 SCALE = 4
+SMALL_RAM = 16 * 1024 * 1024 * 1024
 
 
 def get_args():
@@ -86,7 +89,7 @@ def restore(title_list: List[str]) -> None:
             if not os.path.isfile(upscayl_file[0]):
                 raise Exception(f'Could not find srce upscayl file: "{upscayl_file[0]}".')
             if os.path.isfile(dest_file):
-                logging.warning(f'Dest file exists - skipping: "{get_barks_path(dest_file)}".')
+                logging.warning(f'Dest file exists - skipping: "{get_relpath(dest_file)}".')
                 continue
 
             # print(f'Restoring srce file "{srce_file}", "{upscayl_file}" to dest "{dest_file}".')
@@ -97,11 +100,7 @@ def restore(title_list: List[str]) -> None:
                 )
             )
 
-    for process in restore_processes:
-        process.do_part1()
-        process.do_part2_memory_hungry()
-        process.do_part3()
-        process.do_part4_memory_hungry()
+    run_restore(restore_processes)
 
     logging.info(
         f'\nTime taken to restore all {len(restore_processes)} files": {int(time.time() - start)}s.'
@@ -110,7 +109,59 @@ def restore(title_list: List[str]) -> None:
     check_for_errors(restore_processes)
 
 
-work_dir = os.path.join("/home/greg/Prj/workdir/restore-tests")
+part1_max_workers = 10
+
+
+def run_restore_part1(proc: RestorePipeline):
+    logging.info("Starting restore part 1.")
+    proc.do_part1()
+
+
+part2_max_workers = 1 if psutil.virtual_memory().total < SMALL_RAM else 3
+
+
+def run_restore_part2(proc: RestorePipeline):
+    logging.info("Starting restore part 2.")
+    proc.do_part2_memory_hungry()
+
+
+part3_max_workers = 10
+
+
+def run_restore_part3(proc: RestorePipeline):
+    logging.info("Starting restore part 3.")
+    proc.do_part3()
+
+
+part4_max_workers = 1
+
+
+def run_restore_part4(proc: RestorePipeline):
+    logging.info("Starting restore part 4.")
+    proc.do_part4_memory_hungry()
+
+
+def run_restore(restore_processes: List[RestorePipeline]) -> None:
+    logging.info(f"Starting restore for {len(restore_processes)} processes.")
+
+    with concurrent.futures.ProcessPoolExecutor(part1_max_workers) as executor:
+        for process in restore_processes:
+            executor.submit(run_restore_part1, process)
+
+    with concurrent.futures.ProcessPoolExecutor(part2_max_workers) as executor:
+        for process in restore_processes:
+            executor.submit(run_restore_part2, process)
+
+    with concurrent.futures.ProcessPoolExecutor(part3_max_workers) as executor:
+        for process in restore_processes:
+            executor.submit(run_restore_part3, process)
+
+    with concurrent.futures.ProcessPoolExecutor(part4_max_workers) as executor:
+        for process in restore_processes:
+            executor.submit(run_restore_part4, process)
+
+
+work_dir = os.path.join(f"{Path.home()}/Prj/workdir/restore-tests")
 os.makedirs(work_dir, exist_ok=True)
 
 setup_logging(logging.INFO)
