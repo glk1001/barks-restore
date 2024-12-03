@@ -81,22 +81,46 @@ def restore(title_list: List[str]) -> None:
 
         srce_files = comic.get_final_srce_story_files(RESTORABLE_PAGE_TYPES)
         upscayl_files = comic.get_final_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
-        dest_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
+        dest_restored_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
+        dest_upscayled_restored_files = comic.get_srce_upscayled_restored_story_files(
+            RESTORABLE_PAGE_TYPES
+        )
+        dest_svg_restored_files = comic.get_srce_svg_restored_story_files(RESTORABLE_PAGE_TYPES)
 
-        for srce_file, upscayl_file, dest_file in zip(srce_files, upscayl_files, dest_files):
+        for (
+            srce_file,
+            upscayl_file,
+            dest_restored_file,
+            dest_upscayled_restored_file,
+            dest_svg_restored_file,
+        ) in zip(
+            srce_files,
+            upscayl_files,
+            dest_restored_files,
+            dest_upscayled_restored_files,
+            dest_svg_restored_files,
+        ):
             if not os.path.isfile(srce_file[0]):
                 raise Exception(f'Could not find srce file: "{srce_file[0]}".')
             if not os.path.isfile(upscayl_file[0]):
                 raise Exception(f'Could not find srce upscayl file: "{upscayl_file[0]}".')
-            if os.path.isfile(dest_file):
-                logging.warning(f'Dest file exists - skipping: "{get_relpath(dest_file)}".')
+            if os.path.isfile(dest_restored_file):
+                logging.warning(
+                    f'Dest file exists - skipping: "{get_relpath(dest_restored_file)}".'
+                )
                 continue
 
-            # print(f'Restoring srce file "{srce_file}", "{upscayl_file}" to dest "{dest_file}".')
+            # print(f'Restoring srce file "{srce_file}", "{upscayl_file}" to dest "{dest_restored_file}".')
 
             restore_processes.append(
                 RestorePipeline(
-                    work_dir, Path(srce_file[0]), Path(upscayl_file[0]), SCALE, Path(dest_file)
+                    work_dir,
+                    Path(srce_file[0]),
+                    Path(upscayl_file[0]),
+                    SCALE,
+                    Path(dest_restored_file),
+                    Path(dest_upscayled_restored_file),
+                    Path(dest_svg_restored_file),
                 )
             )
 

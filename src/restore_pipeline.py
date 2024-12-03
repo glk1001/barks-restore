@@ -2,11 +2,10 @@ import logging
 import os
 import time
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 import cv2 as cv
 
-import potrace_to_svg
 import vtracer_to_svg
 from barks_fantagraphics.comics_utils import get_clean_path
 from image_io import svg_file_to_png, resize_image_file, write_cv_image_file
@@ -19,14 +18,23 @@ from smooth_image import smooth_image_file
 
 class RestorePipeline:
     def __init__(
-        self, work_dir: str, srce_file: Path, upscale_srce_file: Path, scale: int, dest_file: Path
+        self,
+        work_dir: str,
+        srce_file: Path,
+        srce_upscale_file: Path,
+        scale: int,
+        dest_restored_file: Path,
+        dest_upscayled_restored_file: Path,
+        dest_svg_restored_file: Path,
     ):
         self.work_dir = work_dir
-        self.out_dir = os.path.dirname(dest_file)
+        self.out_dir = os.path.dirname(dest_restored_file)
         self.srce_file = srce_file
-        self.upscale_srce_file = upscale_srce_file
+        self.srce_upscale_file = srce_upscale_file
         self.scale = scale
-        self.restored_file = str(dest_file)
+        self.dest_restored_file = str(dest_restored_file)
+        self.dest_upscayled_restored_file = str(dest_upscayled_restored_file)
+        self.dest_svg_restored_file = str(dest_svg_restored_file)
 
         self.errors_occurred = False
 
@@ -36,26 +44,22 @@ class RestorePipeline:
             raise Exception(f'Restored directory not found: "{self.out_dir}".')
         if not os.path.exists(self.srce_file):
             raise Exception(f'Srce file not found: "{self.srce_file}".')
-        if not os.path.exists(self.upscale_srce_file):
-            raise Exception(f'Upscayl file not found: "{self.upscale_srce_file}".')
+        if not os.path.exists(self.srce_upscale_file):
+            raise Exception(f'Upscayl file not found: "{self.srce_upscale_file}".')
 
-        self.upscale_image_stem = f"{upscale_srce_file.stem}-upscayled"
+        self.srce_upscale_stem = f"{self.srce_upscale_file.stem}-upscayled"
 
         self.removed_artifacts_file = os.path.join(
-            work_dir, f"{self.upscale_image_stem}-median-filtered.png"
+            work_dir, f"{self.srce_upscale_stem}-median-filtered.png"
         )
         self.removed_colors_file = os.path.join(
-            work_dir, f"{self.upscale_image_stem}-color-removed.png"
+            work_dir, f"{self.srce_upscale_stem}-color-removed.png"
         )
         self.smoothed_removed_colors_file = os.path.join(
-            work_dir, f"{self.upscale_image_stem}-color-removed-smoothed.png"
+            work_dir, f"{self.srce_upscale_stem}-color-removed-smoothed.png"
         )
-        self.svg_file = str(Path(self.restored_file).with_suffix(".svg"))
-        self.png_of_svg_file = self.svg_file + ".png"
-        self.inpainted_file = os.path.join(work_dir, f"{self.upscale_image_stem}-inpainted.png")
-        self.restored_upscayl_file = os.path.join(
-            work_dir, f"{self.upscale_image_stem}-restored.png"
-        )
+        self.png_of_svg_file = self.dest_svg_restored_file + ".png"
+        self.inpainted_file = os.path.join(work_dir, f"{self.srce_upscale_stem}-inpainted.png")
 
     def do_part1(self):
         self.do_remove_jpg_artifacts()
@@ -79,7 +83,7 @@ class RestorePipeline:
                 f'\nGenerating file with jpeg artifacts removed: "{self.removed_artifacts_file}"...'
             )
 
-            upscale_image = cv.imread(str(self.upscale_srce_file))
+            upscale_image = cv.imread(str(self.srce_upscale_file))
             out_image = get_median_filter(upscale_image)
             write_cv_image_file(self.removed_artifacts_file, out_image)
 
@@ -99,7 +103,7 @@ class RestorePipeline:
 
             remove_colors_from_image(
                 self.work_dir,
-                self.upscale_image_stem,
+                self.srce_upscale_stem,
                 self.removed_artifacts_file,
                 self.removed_colors_file,
             )
@@ -130,18 +134,20 @@ class RestorePipeline:
     def do_generate_svg(self):
         try:
             start = time.time()
-            logging.info(f'\nGenerating svg file "{self.svg_file}"...')
+            logging.info(f'\nGenerating svg file "{self.dest_svg_restored_file}"...')
 
-            #potrace_to_svg.image_file_to_svg(self.smoothed_removed_colors_file, self.svg_file)
-            vtracer_to_svg.image_file_to_svg(self.smoothed_removed_colors_file, self.svg_file)
+            # potrace_to_svg.image_file_to_svg(self.smoothed_removed_colors_file, self.dest_svg_restored_file)
+            vtracer_to_svg.image_file_to_svg(
+                self.smoothed_removed_colors_file, self.dest_svg_restored_file
+            )
 
             logging.info(
-                f'Time taken to generate svg "{os.path.basename(self.svg_file)}":'
+                f'Time taken to generate svg "{os.path.basename(self.dest_svg_restored_file)}":'
                 f" {int(time.time() - start)}s."
             )
 
             logging.info(f'\nSaving svg file to png file "{self.png_of_svg_file}"...')
-            svg_file_to_png(self.svg_file, self.png_of_svg_file)
+            svg_file_to_png(self.dest_svg_restored_file, self.png_of_svg_file)
         except Exception as e:
             self.errors_occurred = True
             logging.exception(e)
@@ -153,8 +159,8 @@ class RestorePipeline:
 
             inpaint_image_file(
                 self.work_dir,
-                self.upscale_image_stem,
-                str(self.upscale_srce_file),
+                self.srce_upscale_stem,
+                str(self.srce_upscale_file),
                 self.removed_colors_file,
                 self.inpainted_file,
             )
@@ -176,7 +182,7 @@ class RestorePipeline:
             )
 
             overlay_inpainted_file_with_black_ink(
-                self.inpainted_file, self.png_of_svg_file, self.restored_upscayl_file
+                self.inpainted_file, self.png_of_svg_file, self.dest_upscayled_restored_file
             )
 
             logging.info(
@@ -189,24 +195,27 @@ class RestorePipeline:
 
     def do_resize_restored_file(self):
         try:
-            logging.info(f'\nResizing restored file to "{self.restored_file}"...')
+            logging.info(f'\nResizing restored file to "{self.dest_restored_file}"...')
 
             # TODO: Save other params used in process.
             restored_file_metadata = {
                 "Source file": f'"{get_clean_path(self.srce_file)}"',
-                "Upscayl file": f'"{get_clean_path(self.upscale_srce_file)}"',
+                "Upscayl file": f'"{get_clean_path(self.srce_upscale_file)}"',
                 "Upscayl scale": str(self.scale),
             }
 
             resize_image_file(
-                self.restored_upscayl_file, self.scale, self.restored_file, restored_file_metadata
+                self.dest_upscayled_restored_file,
+                self.scale,
+                self.dest_restored_file,
+                restored_file_metadata,
             )
         except Exception as e:
             self.errors_occurred = True
             logging.exception(e)
 
 
-def check_file_exists(proc: RestorePipeline, file: str):
+def check_file_exists(proc: RestorePipeline, file: Union[str, Path]):
     if not os.path.exists(file):
         logging.error(f'Could not find output artifact "{file}".')
         proc.errors_occurred = True
@@ -217,11 +226,11 @@ def check_for_errors(restore_procs: List[RestorePipeline]):
         check_file_exists(proc, proc.removed_artifacts_file)
         check_file_exists(proc, proc.removed_colors_file)
         check_file_exists(proc, proc.smoothed_removed_colors_file)
-        check_file_exists(proc, proc.svg_file)
+        check_file_exists(proc, proc.dest_svg_restored_file)
         check_file_exists(proc, proc.png_of_svg_file)
         check_file_exists(proc, proc.inpainted_file)
-        check_file_exists(proc, proc.restored_upscayl_file)
-        check_file_exists(proc, proc.restored_file)
+        check_file_exists(proc, proc.dest_upscayled_restored_file)
+        check_file_exists(proc, proc.dest_restored_file)
 
         if proc.errors_occurred:
-            logging.error(f'Errors occurred while processing "{proc.upscale_srce_file}".')
+            logging.error(f'Errors occurred while processing "{proc.srce_upscale_file}".')
