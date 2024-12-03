@@ -1,4 +1,3 @@
-import cairosvg
 from PIL import Image
 from potrace import Bitmap, POTRACE_TURNPOLICY_MINORITY
 
@@ -54,10 +53,3 @@ def image_file_to_svg(in_file: str, out_file: str):
         )
         fp.write(f'<path stroke="none" fill="black" fill-rule="evenodd" d="{"".join(parts)}"/>')
         fp.write("</svg>")
-
-
-def svg_file_to_png(svg_file: str, png_file: str):
-    png_image = cairosvg.svg2png(url=svg_file, scale=1)
-
-    with open(png_file, "wb") as f:
-        f.write(png_image)

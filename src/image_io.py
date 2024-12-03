@@ -1,6 +1,7 @@
 import os
 from typing import List, Dict
 
+import cairosvg
 import cv2 as cv
 import gmic
 from PIL import Image
@@ -15,6 +16,13 @@ SAVE_JPG_COMPRESS_LEVEL = 9
 # TODO: Use these everywhere
 JPEG_FILE_EXT = ".jpg"
 PNG_FILE_EXT = ".png"
+
+
+def svg_file_to_png(svg_file: str, png_file: str):
+    png_image = cairosvg.svg2png(url=svg_file, scale=1)
+
+    with open(png_file, "wb") as f:
+        f.write(png_image)
 
 
 def write_cv_image_file(file: str, image: cv.typing.MatLike, metadata: Dict[str, str] = None):

@@ -5,7 +5,7 @@ from pathlib import Path
 from src.upscale_image import upscale_image_file
 
 if __name__ == "__main__":
-    scale = 8
+    scale = 4
 
     input_image_file = sys.argv[1]
 

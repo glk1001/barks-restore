@@ -1,6 +1,7 @@
 import sys
 
-from src.potrace_to_svg import image_file_to_svg, svg_file_to_png
+from src.potrace_to_svg import image_file_to_svg
+from src.image_io import svg_file_to_png
 
 if __name__ == "__main__":
     input_image_file = sys.argv[1]
