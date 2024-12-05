@@ -21,6 +21,9 @@ def image_file_to_svg(in_file: str, out_file: str):
     #                                   Defaults to 45.
     # filter_speckle (int, optional): Discard patches smaller than X px in size. Defaults to 4.
 
+    # Testing on three single panel images showed defaults good but 'length_threshold=10' also
+    # gives good results with smaller .svg files.
+
     convert_image_to_svg_py(
         in_file,
         out_file,
@@ -29,7 +32,7 @@ def image_file_to_svg(in_file: str, out_file: str):
         mode="spline",
         filter_speckle=2,
         corner_threshold=60,
-        length_threshold=24.0,
+        length_threshold=10.0,
         max_iterations=10,
         splice_threshold=45,  # higher than this is not so good
     )
