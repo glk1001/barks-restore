@@ -7,10 +7,10 @@ from typing import List
 
 from intspan import intspan
 
+from barks_fantagraphics.comics_cmd_args import get_std_args
 from barks_fantagraphics.comics_database import ComicsDatabase, PageType
 from barks_fantagraphics.comics_utils import get_relpath
 from src.image_io import svg_file_to_png
-from vol_title_arg_parse import get_args
 
 
 def setup_logging(log_level) -> None:
@@ -66,7 +66,7 @@ def convert_svg_to_png(srce_svg: str) -> None:
 
 setup_logging(logging.INFO)
 
-cmd_args = get_args()
+cmd_args = get_std_args()
 if not cmd_args:
     sys.exit(1)
 

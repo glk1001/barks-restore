@@ -9,10 +9,10 @@ from typing import List
 import psutil
 from intspan import intspan
 
+from barks_fantagraphics.comics_cmd_args import get_std_args
 from barks_fantagraphics.comics_database import ComicsDatabase, PageType
 from barks_fantagraphics.comics_utils import get_relpath
 from src.restore_pipeline import RestorePipeline, check_for_errors
-from vol_title_arg_parse import get_args
 
 
 def setup_logging(log_level) -> None:
@@ -153,7 +153,7 @@ os.makedirs(work_dir, exist_ok=True)
 
 setup_logging(logging.INFO)
 
-cmd_args = get_args()
+cmd_args = get_std_args()
 if not cmd_args:
     sys.exit(1)
 
