@@ -7,10 +7,9 @@ from pathlib import Path
 from typing import List
 
 import psutil
-from intspan import intspan
 
-from barks_fantagraphics.comics_cmd_args import get_std_args
-from barks_fantagraphics.comics_database import ComicsDatabase, PageType
+from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
+from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
 from barks_fantagraphics.comics_utils import get_relpath
 from src.restore_pipeline import RestorePipeline, check_for_errors
 
@@ -22,12 +21,6 @@ def setup_logging(log_level) -> None:
         level=log_level,
     )
 
-
-RESTORABLE_PAGE_TYPES = [
-    PageType.BODY,
-    PageType.FRONT_MATTER,
-    PageType.BACK_MATTER,
-]
 
 SCALE = 4
 SMALL_RAM = 16 * 1024 * 1024 * 1024
@@ -153,17 +146,14 @@ os.makedirs(work_dir, exist_ok=True)
 
 setup_logging(logging.INFO)
 
-cmd_args = get_std_args()
-if not cmd_args:
+cmd_args = CmdArgs("Ocr titles", CmdArgNames.TITLE | CmdArgNames.VOLUME)
+args_ok, error_msg = cmd_args.args_are_valid()
+if not args_ok:
+    logging.error(error_msg)
     sys.exit(1)
 
-comics_database = ComicsDatabase(cmd_args.comics_database_dir)
+comics_database = cmd_args.get_comics_database()
 
-if cmd_args.title:
-    titles = [cmd_args.title]
-else:
-    assert cmd_args.volume is not None
-    vol_list = list(intspan(cmd_args.volume))
-    titles = comics_database.get_all_story_titles_in_fantagraphics_volume(vol_list)
+titles = cmd_args.get_titles()
 
 restore(titles)
