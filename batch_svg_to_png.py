@@ -7,17 +7,8 @@ from typing import List
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_utils import get_relpath
+from barks_fantagraphics.comics_utils import get_relpath, setup_logging
 from src.image_io import svg_file_to_png
-
-
-def setup_logging(log_level) -> None:
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)s: %(message)s",
-        datefmt="%m/%d/%Y %H:%M:%S",
-        level=log_level,
-    )
-
 
 SCALE = 4
 
@@ -31,7 +22,7 @@ def svgs_to_pngs(title_list: List[str]) -> None:
 
         comic = comics_database.get_comic_book(title)
 
-        srce_files = comic.get_srce_svg_restored_story_files(RESTORABLE_PAGE_TYPES)
+        srce_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
             for srce_file in srce_files:

@@ -6,17 +6,8 @@ from typing import List
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_utils import get_relpath
+from barks_fantagraphics.comics_utils import get_relpath, setup_logging
 from src.upscale_image import upscale_image_file
-
-
-def setup_logging(log_level) -> None:
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)s: %(message)s",
-        datefmt="%m/%d/%Y %H:%M:%S",
-        level=log_level,
-    )
-
 
 SCALE = 4
 

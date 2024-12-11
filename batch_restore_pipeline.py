@@ -10,17 +10,8 @@ import psutil
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_utils import get_relpath
+from barks_fantagraphics.comics_utils import get_relpath, setup_logging
 from src.restore_pipeline import RestorePipeline, check_for_errors
-
-
-def setup_logging(log_level) -> None:
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)s: %(message)s",
-        datefmt="%m/%d/%Y %H:%M:%S",
-        level=log_level,
-    )
-
 
 SCALE = 4
 SMALL_RAM = 16 * 1024 * 1024 * 1024
@@ -38,10 +29,10 @@ def restore(title_list: List[str]) -> None:
         srce_files = comic.get_final_srce_story_files(RESTORABLE_PAGE_TYPES)
         upscayl_files = comic.get_final_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
         dest_restored_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
-        dest_upscayled_restored_files = comic.get_srce_upscayled_restored_story_files(
+        dest_restored_upscayled_files = comic.get_srce_restored_upscayled_story_files(
             RESTORABLE_PAGE_TYPES
         )
-        dest_svg_restored_files = comic.get_srce_svg_restored_story_files(RESTORABLE_PAGE_TYPES)
+        dest_restored_svg_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
 
         for (
             srce_file,
@@ -53,8 +44,8 @@ def restore(title_list: List[str]) -> None:
             srce_files,
             upscayl_files,
             dest_restored_files,
-            dest_upscayled_restored_files,
-            dest_svg_restored_files,
+            dest_restored_upscayled_files,
+            dest_restored_svg_files,
         ):
             if not os.path.isfile(srce_file[0]):
                 raise Exception(f'Could not find srce file: "{srce_file[0]}".')
