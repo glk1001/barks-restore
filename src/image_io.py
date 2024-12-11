@@ -7,15 +7,13 @@ import gmic
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 
+from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP, add_png_metadata
+from barks_fantagraphics.comics_info import JPG_FILE_EXT, PNG_FILE_EXT
+
 Image.MAX_IMAGE_PIXELS = None
 
-METADATA_PROPERTY_GROUP = "BARKS"
 SAVE_JPG_QUALITY = 95
 SAVE_JPG_COMPRESS_LEVEL = 9
-
-# TODO: Use these everywhere
-JPEG_FILE_EXT = ".jpg"
-PNG_FILE_EXT = ".png"
 
 
 def svg_file_to_png(svg_file: str, png_file: str):
@@ -26,7 +24,7 @@ def svg_file_to_png(svg_file: str, png_file: str):
 
 
 def write_cv_image_file(file: str, image: cv.typing.MatLike, metadata: Dict[str, str] = None):
-    if os.path.splitext(file)[1] == JPEG_FILE_EXT:
+    if os.path.splitext(file)[1] == JPG_FILE_EXT:
         _write_cv_jpeg_file(file, image, metadata)
         return
 
@@ -38,7 +36,7 @@ def write_cv_image_file(file: str, image: cv.typing.MatLike, metadata: Dict[str,
 
 
 def resize_image_file(in_file: str, srce_scale: int, resized_file: str, metadata: Dict[str, str]):
-    if os.path.splitext(resized_file)[1] == JPEG_FILE_EXT:
+    if os.path.splitext(resized_file)[1] == JPG_FILE_EXT:
         _resize_jpeg_file(in_file, srce_scale, resized_file, metadata)
         return
 
@@ -65,39 +63,6 @@ def _resize_png_file(in_file: str, srce_scale: int, resized_file: str, metadata:
     )
 
     add_png_metadata(resized_file, metadata)
-
-
-def add_jpg_metadata(jpg_file: str, metadata: Dict[str, str]):
-    pil_image = Image.open(jpg_file, "r")
-
-    jpg_metadata = PngInfo()
-    for key in metadata:
-        jpg_metadata.add_text(f"{METADATA_PROPERTY_GROUP}:{key}", metadata[key])
-
-    pil_image.save(jpg_file, jpginfo=jpg_metadata)
-
-
-def add_png_metadata(png_file: str, metadata: Dict[str, str]):
-    pil_image = Image.open(png_file, "r")
-
-    png_metadata = PngInfo()
-    for key in metadata:
-        png_metadata.add_text(f"{METADATA_PROPERTY_GROUP}:{key}", metadata[key])
-
-    pil_image.save(png_file, pnginfo=png_metadata)
-
-
-def get_png_metadata(png_file: str) -> Dict[str, str]:
-    pil_image = Image.open(png_file, "r")
-
-    png_metadata = pil_image.info
-
-    metadata = dict()
-    for key in png_metadata:
-        if key.startswith(METADATA_PROPERTY_GROUP + ":"):
-            metadata[key] = png_metadata[key]
-
-    return metadata
 
 
 def _write_cv_png_file(file: str, image: cv.typing.MatLike, metadata: Dict[str, str]):
