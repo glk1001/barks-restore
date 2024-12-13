@@ -1,4 +1,5 @@
 import os
+from io import BytesIO
 from typing import List, Dict
 
 import cairosvg
@@ -12,15 +13,18 @@ from barks_fantagraphics.comics_info import JPG_FILE_EXT, PNG_FILE_EXT
 
 Image.MAX_IMAGE_PIXELS = None
 
+SAVE_PNG_COMPRESSION = 9
 SAVE_JPG_QUALITY = 95
 SAVE_JPG_COMPRESS_LEVEL = 9
 
 
 def svg_file_to_png(svg_file: str, png_file: str):
-    png_image = cairosvg.svg2png(url=svg_file, scale=1)
+    # background_color = "white"
+    background_color = None
+    png_image = cairosvg.svg2png(url=svg_file, scale=1, background_color=background_color)
 
-    with open(png_file, "wb") as f:
-        f.write(png_image)
+    pil_image = Image.open(BytesIO(png_image))
+    pil_image.save(png_file, optimize=True, compress_level=SAVE_PNG_COMPRESSION)
 
 
 def write_cv_image_file(file: str, image: cv.typing.MatLike, metadata: Dict[str, str] = None):
@@ -74,7 +78,7 @@ def _write_cv_png_file(file: str, image: cv.typing.MatLike, metadata: Dict[str, 
         for key in metadata:
             png_metadata.add_text(f"{METADATA_PROPERTY_GROUP}:{key}", metadata[key])
 
-    pil_image.save(file, pnginfo=png_metadata)
+    pil_image.save(file, pnginfo=png_metadata, optimize=True, compress_level=SAVE_PNG_COMPRESSION)
 
 
 def _write_cv_jpeg_file(file: str, image: cv.typing.MatLike, metadata: Dict[str, str]):

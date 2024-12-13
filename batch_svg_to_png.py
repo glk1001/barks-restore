@@ -34,16 +34,21 @@ def svgs_to_pngs(title_list: List[str]) -> None:
 
 
 def convert_svg_to_png(srce_svg: str) -> None:
-    if not os.path.isfile(srce_svg):
-        raise Exception(f'Could not find srce file: "{srce_svg}".')
+    try:
+        if not os.path.isfile(srce_svg):
+            raise Exception(f'Could not find srce file: "{srce_svg}".')
 
-    png_file = srce_svg + ".png"
-    if os.path.isfile(png_file):
-        logging.warning(f'Dest png file exists - skipping: "{get_relpath(png_file)}".')
+        png_file = srce_svg + ".png"
+        if os.path.isfile(png_file):
+            logging.warning(f'Dest png file exists - skipping: "{get_relpath(png_file)}".')
+            return
+
+        logging.info(f'Converting svg file "{srce_svg}" to dest png "{png_file}".')
+        svg_file_to_png(srce_svg, png_file)
+
+    except Exception as e:
+        logging.error(f"Error: {e}")
         return
-
-    print(f'Converting svg file "{srce_svg}" to dest png "{png_file}".')
-    svg_file_to_png(srce_svg, png_file)
 
 
 setup_logging(logging.INFO)
