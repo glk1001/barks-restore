@@ -1,4 +1,3 @@
--e git+https://github.com/glk1001/barks-fantagraphics.git@8295c364e9ec8565ed7649ae0533c47d8ed94b50#egg=barks_fantagraphics
 cairocffi==1.7.1
 CairoSVG==2.7.1
 cffi==1.17.1
