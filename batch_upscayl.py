@@ -33,7 +33,10 @@ def upscayl(title_list: List[str]) -> None:
                 )
                 continue
 
-            # print(f'Upscayling srce file "{srce_file[0]}" to dest upscayl "{upscayl_file}".')
+            logging.info(
+                f'Upscayling srce file "{get_relpath(srce_file[0])}"'
+                f' to dest upscayl "{get_relpath(upscayl_file)}".'
+            )
             upscale_image_file(srce_file[0], upscayl_file, SCALE)
 
             num_upscayled_files += 1

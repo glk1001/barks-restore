@@ -26,6 +26,9 @@ def restore(title_list: List[str]) -> None:
 
         comic = comics_database.get_comic_book(title)
 
+        title_work_dir = os.path.join(work_dir, title)
+        os.makedirs(title_work_dir, exist_ok=True)
+
         srce_files = comic.get_final_srce_story_files(RESTORABLE_PAGE_TYPES)
         upscayl_files = comic.get_final_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
         dest_restored_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
@@ -57,11 +60,15 @@ def restore(title_list: List[str]) -> None:
                 )
                 continue
 
-            # print(f'Restoring srce file "{srce_file}", "{upscayl_file}" to dest "{dest_restored_file}".')
+            logging.info(
+                f'Restoring srce file "{get_relpath(srce_file[0])}",'
+                f' "{get_relpath(upscayl_file[0])}"'
+                f' to dest "{get_relpath(dest_restored_file)}".'
+            )
 
             restore_processes.append(
                 RestorePipeline(
-                    work_dir,
+                    title_work_dir,
                     Path(srce_file[0]),
                     Path(upscayl_file[0]),
                     SCALE,
@@ -137,7 +144,7 @@ os.makedirs(work_dir, exist_ok=True)
 
 setup_logging(logging.INFO)
 
-cmd_args = CmdArgs("Ocr titles", CmdArgNames.TITLE | CmdArgNames.VOLUME)
+cmd_args = CmdArgs("Restore titles", CmdArgNames.TITLE | CmdArgNames.VOLUME)
 args_ok, error_msg = cmd_args.args_are_valid()
 if not args_ok:
     logging.error(error_msg)
