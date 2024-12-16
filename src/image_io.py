@@ -8,14 +8,16 @@ import gmic
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 
-from barks_fantagraphics.comics_image_io import METADATA_PROPERTY_GROUP, add_png_metadata
+from barks_fantagraphics.comics_image_io import (
+    METADATA_PROPERTY_GROUP,
+    SAVE_PNG_COMPRESSION,
+    SAVE_JPG_QUALITY,
+    SAVE_JPG_COMPRESS_LEVEL,
+    add_png_metadata,
+)
 from barks_fantagraphics.comics_info import JPG_FILE_EXT, PNG_FILE_EXT
 
 Image.MAX_IMAGE_PIXELS = None
-
-SAVE_PNG_COMPRESSION = 9
-SAVE_JPG_QUALITY = 95
-SAVE_JPG_COMPRESS_LEVEL = 9
 
 
 def svg_file_to_png(svg_file: str, png_file: str):
