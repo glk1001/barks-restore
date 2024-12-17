@@ -6,14 +6,14 @@ from typing import List, Union
 
 import cv2 as cv
 
-import vtracer_to_svg
 from barks_fantagraphics.comics_utils import get_clean_path
-from image_io import svg_file_to_png, resize_image_file, write_cv_image_file
-from inpaint import inpaint_image_file
-from overlay import overlay_inpainted_file_with_black_ink
-from remove_alias_artifacts import get_median_filter
-from remove_colors import remove_colors_from_image
-from smooth_image import smooth_image_file
+from .image_io import svg_file_to_png, resize_image_file, write_cv_image_file
+from .inpaint import inpaint_image_file
+from .overlay import overlay_inpainted_file_with_black_ink
+from .remove_alias_artifacts import get_median_filter
+from .remove_colors import remove_colors_from_image
+from .smooth_image import smooth_image_file
+from .vtracer_to_svg import image_file_to_svg
 
 
 class RestorePipeline:
@@ -137,9 +137,7 @@ class RestorePipeline:
             logging.info(f'\nGenerating svg file "{self.dest_svg_restored_file}"...')
 
             # potrace_to_svg.image_file_to_svg(self.smoothed_removed_colors_file, self.dest_svg_restored_file)
-            vtracer_to_svg.image_file_to_svg(
-                self.smoothed_removed_colors_file, self.dest_svg_restored_file
-            )
+            image_file_to_svg(self.smoothed_removed_colors_file, self.dest_svg_restored_file)
 
             logging.info(
                 f'Time taken to generate svg "{os.path.basename(self.dest_svg_restored_file)}":'

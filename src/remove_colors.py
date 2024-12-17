@@ -5,7 +5,7 @@ from typing import Tuple, Dict
 import cv2 as cv
 import numpy as np
 
-from image_io import write_cv_image_file
+from .image_io import write_cv_image_file
 
 DEBUG_WRITE_COLOR_COUNTS = True
 

@@ -4,7 +4,7 @@ import cv2 as cv
 import gmic
 import numpy as np
 
-from image_io import write_cv_image_file
+from .image_io import write_cv_image_file
 
 
 def inpaint_image_file(
