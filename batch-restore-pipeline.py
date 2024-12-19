@@ -10,7 +10,7 @@ import psutil
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_utils import get_relpath, setup_logging
+from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
 from src.restore_pipeline import RestorePipeline, check_for_errors
 
 SCALE = 4
@@ -56,14 +56,14 @@ def restore(title_list: List[str]) -> None:
                 raise Exception(f'Could not find srce upscayl file: "{upscayl_file[0]}".')
             if os.path.isfile(dest_restored_file):
                 logging.warning(
-                    f'Dest file exists - skipping: "{get_relpath(dest_restored_file)}".'
+                    f'Dest file exists - skipping: "{get_abbrev_path(dest_restored_file)}".'
                 )
                 continue
 
             logging.info(
-                f'Restoring srce file "{get_relpath(srce_file[0])}",'
-                f' "{get_relpath(upscayl_file[0])}"'
-                f' to dest "{get_relpath(dest_restored_file)}".'
+                f'Restoring srce file "{get_abbrev_path(srce_file[0])}",'
+                f' "{get_abbrev_path(upscayl_file[0])}"'
+                f' to dest "{get_abbrev_path(dest_restored_file)}".'
             )
 
             restore_processes.append(

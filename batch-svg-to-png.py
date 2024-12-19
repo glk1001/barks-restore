@@ -7,7 +7,7 @@ from typing import List
 
 from barks_fantagraphics.comics_cmd_args import CmdArgs, CmdArgNames
 from barks_fantagraphics.comics_consts import RESTORABLE_PAGE_TYPES
-from barks_fantagraphics.comics_utils import get_relpath, setup_logging
+from barks_fantagraphics.comics_utils import get_abbrev_path, setup_logging
 from src.image_io import svg_file_to_png
 
 SCALE = 4
@@ -40,10 +40,13 @@ def convert_svg_to_png(srce_svg: str) -> None:
 
         png_file = srce_svg + ".png"
         if os.path.isfile(png_file):
-            logging.warning(f'Dest png file exists - skipping: "{get_relpath(png_file)}".')
+            logging.warning(f'Dest png file exists - skipping: "{get_abbrev_path(png_file)}".')
             return
 
-        logging.info(f'Converting svg file "{srce_svg}" to dest png "{png_file}".')
+        logging.info(
+            f'Converting svg file "{get_abbrev_path(srce_svg)}"'
+            f' to dest png "{get_abbrev_path(png_file)}".'
+        )
         svg_file_to_png(srce_svg, png_file)
 
     except Exception as e:
