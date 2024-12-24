@@ -1,7 +1,23 @@
-import gmic
+from .gmic_exe import run_gmic
 
 
 def smooth_image_file(in_file: str, out_file: str):
+    smooth_cmd = [
+        in_file,
+        "fx_smooth_anisotropic",
+        _get_gmic_smooth_anisotropic_params(),
+        "-threshold[-1]",
+        "100,1",
+        "normalize[-1]",
+        "0,255",
+        "-output[-1]",
+        out_file,
+    ]
+
+    run_gmic(smooth_cmd)
+
+
+def _get_gmic_smooth_anisotropic_params() -> str:
     amplitude = 420
     sharpness = 0.5
     anisotropy = 0.6
@@ -14,7 +30,8 @@ def smooth_image_file(in_file: str, out_file: str):
     fast_approx = 1
     repeat = 2
     channels = 0
-    smooth_params = (
+
+    return (
         f"{amplitude},"
         f"{sharpness},"
         f"{anisotropy},"
@@ -27,12 +44,4 @@ def smooth_image_file(in_file: str, out_file: str):
         f"{fast_approx},"
         f"{repeat},"
         f"{channels}"
-    )
-
-    # print(smooth_params)
-    gmic.run(
-        f'"{in_file}"'
-        f" fx_smooth_anisotropic {smooth_params}"
-        f" -threshold[-1] 100,1 normalize[-1] 0,255"
-        f' -output[-1] "{out_file}"'
     )

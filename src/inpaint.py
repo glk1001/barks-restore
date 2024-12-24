@@ -1,9 +1,9 @@
 import os.path
 
 import cv2 as cv
-import gmic
 import numpy as np
 
+from .gmic_exe import run_gmic
 from .image_io import write_cv_image_file
 
 
@@ -43,11 +43,12 @@ def inpaint_image_file(
     in_file_black_removed = os.path.join(work_dir, f"{work_file_stem}-input-black-removed.png")
     write_cv_image_file(in_file_black_removed, out_image)
 
-    inpaint_cmd = (
-        f'"{in_file_black_removed}"'
-        f' -fx_inpaint_matchpatch "1","5","26","5","1","255","0","0","255","1","0"'
-        f' output "{out_file}"'
-    )
-    gmic.run(inpaint_cmd)
-    #    gmic.run(f'"{in_file_black_removed}" -fx_inpaint_pde "80","2","15","255","0","0","255","1" output "{inpaint_black_removed_file}"')
-    # TOO LONG    gmic.run(f'"{in_file_black_removed}" -fx_inpaint_patch "7","16","0.1","1.2","0","0.05","10","1","255","0","0","255","0","0" output "{inpaint_black_removed_file}"')
+    inpaint_cmd = [
+        in_file_black_removed,
+        "-fx_inpaint_matchpatch",
+        '"1","5","26","5","1","255","0","0","255","1","0"',
+        "output",
+        out_file,
+    ]
+
+    run_gmic(inpaint_cmd)

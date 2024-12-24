@@ -4,7 +4,6 @@ from typing import List, Dict
 
 import cairosvg
 import cv2 as cv
-import gmic
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 
@@ -16,6 +15,7 @@ from barks_fantagraphics.comics_image_io import (
     add_png_metadata,
 )
 from barks_fantagraphics.comics_info import JPG_FILE_EXT, PNG_FILE_EXT
+from .gmic_exe import run_gmic
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -63,10 +63,16 @@ def _resize_jpeg_file(in_file: str, srce_scale: int, resized_file: str, metadata
 def _resize_png_file(in_file: str, srce_scale: int, resized_file: str, metadata: Dict[str, str]):
     assert srce_scale in [2, 4]
     scale_percent = 25 if srce_scale == 4 else 50
-    gmic.run(
-        f'"{in_file}" +resize[-1] {scale_percent}%,{scale_percent}%,1,3,2'
-        f' output[-1] "{resized_file}"'
-    )
+
+    resize_cmd = [
+        in_file,
+        "+resize[-1]",
+        f"{scale_percent}%,{scale_percent}%,1,3,2",
+        "output[-1]",
+        resized_file,
+    ]
+
+    run_gmic(resize_cmd)
 
     add_png_metadata(resized_file, metadata)
 
