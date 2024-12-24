@@ -20,68 +20,81 @@ SMALL_RAM = 16 * 1024 * 1024 * 1024
 def restore(title_list: List[str]) -> None:
     start = time.time()
 
-    restore_processes = []
     for title in title_list:
-        logging.info(f'Processing story "{title}".')
+        restore_title(title)
 
-        comic = comics_database.get_comic_book(title)
+    logging.info(
+        f'\nTime taken to restore all {len(title_list)} titles": {int(time.time() - start)}s.'
+    )
 
-        title_work_dir = os.path.join(work_dir, title)
-        os.makedirs(title_work_dir, exist_ok=True)
 
-        srce_files = comic.get_final_srce_story_files(RESTORABLE_PAGE_TYPES)
-        upscayl_files = comic.get_final_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
-        dest_restored_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
-        dest_restored_upscayled_files = comic.get_srce_restored_upscayled_story_files(
-            RESTORABLE_PAGE_TYPES
+def restore_title(title: str) -> None:
+    start = time.time()
+
+    logging.info(f'Processing story "{title}".')
+
+    comic = comics_database.get_comic_book(title)
+
+    title_work_dir = os.path.join(work_dir, title)
+    os.makedirs(title_work_dir, exist_ok=True)
+
+    srce_files = comic.get_final_srce_story_files(RESTORABLE_PAGE_TYPES)
+    srce_upscayl_files = comic.get_final_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
+    dest_restored_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
+    dest_restored_upscayled_files = comic.get_srce_restored_upscayled_story_files(
+        RESTORABLE_PAGE_TYPES
+    )
+    dest_restored_svg_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
+
+    restore_processes: List[RestorePipeline] = []
+
+    for (
+        srce_file,
+        srce_upscayl_file,
+        dest_restored_file,
+        dest_upscayled_restored_file,
+        dest_svg_restored_file,
+    ) in zip(
+        srce_files,
+        srce_upscayl_files,
+        dest_restored_files,
+        dest_restored_upscayled_files,
+        dest_restored_svg_files,
+    ):
+        if not os.path.isfile(srce_file[0]):
+            raise Exception(f'Could not find srce file: "{srce_file[0]}".')
+        if not os.path.isfile(srce_upscayl_file[0]):
+            logging.error(f'Could not find srce upscayl file - skipping: "{srce_upscayl_file[0]}".')
+            continue
+        if os.path.isfile(dest_restored_file):
+            logging.warning(
+                f'Dest file exists - skipping: "{get_abbrev_path(dest_restored_file)}".'
+            )
+            continue
+
+        logging.info(
+            f'Restoring srce files "{get_abbrev_path(srce_file[0])}",'
+            f' "{get_abbrev_path(srce_upscayl_file[0])}"'
+            f' to dest "{get_abbrev_path(dest_restored_file)}".'
         )
-        dest_restored_svg_files = comic.get_srce_restored_svg_story_files(RESTORABLE_PAGE_TYPES)
 
-        for (
-            srce_file,
-            upscayl_file,
-            dest_restored_file,
-            dest_upscayled_restored_file,
-            dest_svg_restored_file,
-        ) in zip(
-            srce_files,
-            upscayl_files,
-            dest_restored_files,
-            dest_restored_upscayled_files,
-            dest_restored_svg_files,
-        ):
-            if not os.path.isfile(srce_file[0]):
-                raise Exception(f'Could not find srce file: "{srce_file[0]}".')
-            if not os.path.isfile(upscayl_file[0]):
-                raise Exception(f'Could not find srce upscayl file: "{upscayl_file[0]}".')
-            if os.path.isfile(dest_restored_file):
-                logging.warning(
-                    f'Dest file exists - skipping: "{get_abbrev_path(dest_restored_file)}".'
-                )
-                continue
-
-            logging.info(
-                f'Restoring srce file "{get_abbrev_path(srce_file[0])}",'
-                f' "{get_abbrev_path(upscayl_file[0])}"'
-                f' to dest "{get_abbrev_path(dest_restored_file)}".'
+        restore_processes.append(
+            RestorePipeline(
+                title_work_dir,
+                Path(srce_file[0]),
+                Path(srce_upscayl_file[0]),
+                SCALE,
+                Path(dest_restored_file),
+                Path(dest_upscayled_restored_file),
+                Path(dest_svg_restored_file),
             )
-
-            restore_processes.append(
-                RestorePipeline(
-                    title_work_dir,
-                    Path(srce_file[0]),
-                    Path(upscayl_file[0]),
-                    SCALE,
-                    Path(dest_restored_file),
-                    Path(dest_upscayled_restored_file),
-                    Path(dest_svg_restored_file),
-                )
-            )
+        )
 
     run_restore(restore_processes)
 
     logging.info(
-        f'\nTime taken to restore all {len(restore_processes)} files": {int(time.time() - start)}s.'
+        f"\nTime taken to restore all {len(restore_processes)}"
+        f' title files": {int(time.time() - start)}s.'
     )
 
     check_for_errors(restore_processes)
@@ -91,7 +104,7 @@ part1_max_workers = 10
 
 
 def run_restore_part1(proc: RestorePipeline):
-    logging.info("Starting restore part 1.")
+    logging.info(f'Starting restore part 1 for "{proc.srce_file.name}".')
     proc.do_part1()
 
 
@@ -99,7 +112,7 @@ part2_max_workers = 1 if psutil.virtual_memory().total < SMALL_RAM else 3
 
 
 def run_restore_part2(proc: RestorePipeline):
-    logging.info("Starting restore part 2.")
+    logging.info(f'Starting restore part 2 for "{proc.srce_file.name}".')
     proc.do_part2_memory_hungry()
 
 
@@ -107,15 +120,15 @@ part3_max_workers = 10
 
 
 def run_restore_part3(proc: RestorePipeline):
-    logging.info("Starting restore part 3.")
+    logging.info(f'Starting restore part 3 for "{proc.srce_file.name}".')
     proc.do_part3()
 
 
-part4_max_workers = 1
+part4_max_workers = 1 if psutil.virtual_memory().total < SMALL_RAM else 2
 
 
 def run_restore_part4(proc: RestorePipeline):
-    logging.info("Starting restore part 4.")
+    logging.info(f'Starting restore part 4 for "{proc.srce_file.name}".')
     proc.do_part4_memory_hungry()
 
 
@@ -139,7 +152,7 @@ def run_restore(restore_processes: List[RestorePipeline]) -> None:
             executor.submit(run_restore_part4, process)
 
 
-work_dir = os.path.join(f"{Path.home()}/Prj/workdir/restore-tests")
+work_dir = os.path.join("/mnt/2tb_drive/workdir/barks-restore")
 os.makedirs(work_dir, exist_ok=True)
 
 setup_logging(logging.INFO)

@@ -1,3 +1,5 @@
+import os.path
+
 from vtracer import convert_image_to_svg_py
 
 
@@ -23,6 +25,9 @@ def image_file_to_svg(in_file: str, out_file: str):
 
     # Testing on three single panel images showed defaults good but 'length_threshold=10' also
     # gives good results with smaller .svg files.
+
+    if not os.path.isfile(in_file):
+        raise Exception(f'Could not find file "{in_file}".')
 
     convert_image_to_svg_py(
         in_file,

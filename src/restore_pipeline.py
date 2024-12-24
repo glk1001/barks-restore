@@ -15,6 +15,8 @@ from .remove_colors import remove_colors_from_image
 from .smooth_image import smooth_image_file
 from .vtracer_to_svg import image_file_to_svg
 
+USE_EXISTING_WORK_FILES = False  # Use with care
+
 
 class RestorePipeline:
     def __init__(
@@ -77,6 +79,13 @@ class RestorePipeline:
         self.do_resize_restored_file()
 
     def do_remove_jpg_artifacts(self):
+        if USE_EXISTING_WORK_FILES and os.path.isfile(self.removed_artifacts_file):
+            logging.warning(
+                f"Removed artifacts file already exists - skipping:"
+                f' "{self.removed_artifacts_file}".'
+            )
+            return
+
         try:
             start = time.time()
             logging.info(
@@ -97,6 +106,12 @@ class RestorePipeline:
             logging.exception(e)
 
     def do_remove_colors(self):
+        if USE_EXISTING_WORK_FILES and os.path.isfile(self.removed_colors_file):
+            logging.warning(
+                f"Removed colors file already exists - skipping:" f' "{self.removed_colors_file}".'
+            )
+            return
+
         try:
             start = time.time()
             logging.info(f'\nGenerating color removed file "{self.removed_colors_file}"...')
@@ -117,6 +132,13 @@ class RestorePipeline:
             logging.exception(e)
 
     def do_smooth_removed_colors(self):
+        if USE_EXISTING_WORK_FILES and os.path.isfile(self.smoothed_removed_colors_file):
+            logging.warning(
+                f"Smoothed removed colors file already exists - skipping:"
+                f' "{self.smoothed_removed_colors_file}".'
+            )
+            return
+
         try:
             start = time.time()
             logging.info(f'\nGenerating smoothed file "{self.smoothed_removed_colors_file}"...')
@@ -151,6 +173,12 @@ class RestorePipeline:
             logging.exception(e)
 
     def do_inpaint(self):
+        if USE_EXISTING_WORK_FILES and os.path.isfile(self.inpainted_file):
+            logging.warning(
+                f"Inpainted file already exists - skipping:" f' "{self.inpainted_file}".'
+            )
+            return
+
         try:
             start = time.time()
             logging.info(f'\nInpainting upscayled file to "{self.inpainted_file}"...')
