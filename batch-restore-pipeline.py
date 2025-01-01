@@ -38,7 +38,7 @@ def restore_title(title: str) -> None:
     title_work_dir = os.path.join(work_dir, title)
     os.makedirs(title_work_dir, exist_ok=True)
 
-    srce_files = comic.get_final_srce_story_files(RESTORABLE_PAGE_TYPES)
+    srce_files = comic.get_srce_with_fixes_story_files(RESTORABLE_PAGE_TYPES)
     srce_upscayl_files = comic.get_final_srce_upscayled_story_files(RESTORABLE_PAGE_TYPES)
     dest_restored_files = comic.get_srce_restored_story_files(RESTORABLE_PAGE_TYPES)
     dest_restored_upscayled_files = comic.get_srce_restored_upscayled_story_files(
